@@ -2,11 +2,10 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import tailwindcss from '@tailwindcss/vite';
-import cartographer from '@replit/vite-plugin-cartographer';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(), cartographer()],
+  plugins: [react(), tailwindcss()],
   server: {
     host: '0.0.0.0',
     port: 3000,
