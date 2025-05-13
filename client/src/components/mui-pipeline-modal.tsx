@@ -168,7 +168,7 @@ export function MuiPipelineModal({ open, onClose }: MuiPipelineModalProps) {
                   multiline
                   rows={5}
                   error={!!errors.metadata}
-                  helperText={errors.metadata ? errors.metadata.message : "Enter metadata as JSON (optional)"}
+                  helperText={errors.metadata ? String(errors.metadata.message) : "Enter metadata as JSON (optional)"}
                 />
               )}
             />

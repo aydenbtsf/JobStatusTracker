@@ -34,7 +34,7 @@ import {
   GitBranch,
   Activity
 } from "lucide-react";
-import { MuiPipelineModal } from "@/components/mui-pipeline-modal";
+import { SimplePipelineModal } from "@/components/simple-pipeline-modal";
 
 export default function Dashboard() {
   const [location, setLocation] = useLocation();
@@ -59,6 +59,11 @@ export default function Dashboard() {
       setLocation('/');
     }
   }, [filters.status, setLocation]);
+  
+  // Monitor modal state changes
+  useEffect(() => {
+    console.log("Modal state changed to:", pipelineModalOpen);
+  }, [pipelineModalOpen]);
   
   // Fetch jobs with filters
   const { data, isLoading, error } = useQuery<JobWithTriggers[]>({
@@ -250,12 +255,11 @@ export default function Dashboard() {
                     color="secondary"
                     size="small"
                     onClick={() => {
-                      const newState = !pipelineModalOpen;
-                      setPipelineModalOpen(newState);
-                      alert(`Modal state set to: ${newState}`);
+                      setPipelineModalOpen(true);
+                      console.log("Toggle button clicked, setting modal open to true");
                     }}
                   >
-                    Toggle Modal
+                    Test Modal
                   </Button>
                 </Box>
               </Box>
@@ -477,7 +481,7 @@ export default function Dashboard() {
       </Container>
       
       {/* Pipeline Creation Modal */}
-      <MuiPipelineModal 
+      <SimplePipelineModal 
         open={pipelineModalOpen}
         onClose={() => setPipelineModalOpen(false)}
       />
