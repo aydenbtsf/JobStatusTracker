@@ -34,7 +34,7 @@ import {
   GitBranch,
   Activity
 } from "lucide-react";
-import { CreatePipelineModal } from "@/components/create-pipeline-modal";
+import { MuiPipelineModal } from "@/components/mui-pipeline-modal";
 
 export default function Dashboard() {
   const [location, setLocation] = useLocation();
@@ -229,17 +229,35 @@ export default function Dashboard() {
                 <Typography variant="h6" fontWeight="medium">
                   Pipelines
                 </Typography>
-                <Tooltip title="Create New Pipeline">
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Tooltip title="Create New Pipeline">
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      size="small"
+                      startIcon={<GitBranch size={16} />}
+                      onClick={() => {
+                        console.log("Setting pipeline modal open to true");
+                        setPipelineModalOpen(true);
+                        console.log("Pipeline modal state:", pipelineModalOpen);
+                      }}
+                    >
+                      New Pipeline
+                    </Button>
+                  </Tooltip>
                   <Button
-                    variant="outlined"
-                    color="primary"
+                    variant="contained"
+                    color="secondary"
                     size="small"
-                    startIcon={<GitBranch size={16} />}
-                    onClick={() => setPipelineModalOpen(true)}
+                    onClick={() => {
+                      const newState = !pipelineModalOpen;
+                      setPipelineModalOpen(newState);
+                      alert(`Modal state set to: ${newState}`);
+                    }}
                   >
-                    New Pipeline
+                    Toggle Modal
                   </Button>
-                </Tooltip>
+                </Box>
               </Box>
               <TableContainer>
                 <Table>
@@ -459,7 +477,7 @@ export default function Dashboard() {
       </Container>
       
       {/* Pipeline Creation Modal */}
-      <CreatePipelineModal 
+      <MuiPipelineModal 
         open={pipelineModalOpen}
         onClose={() => setPipelineModalOpen(false)}
       />

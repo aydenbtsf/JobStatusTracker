@@ -34,6 +34,7 @@ const formSchema = z.object({
 });
 
 export function CreatePipelineModal({ open, onClose }: CreatePipelineModalProps) {
+  console.log("CreatePipelineModal rendered, open state:", open);
   const { toast } = useToast();
   
   const form = useForm<z.infer<typeof formSchema>>({
