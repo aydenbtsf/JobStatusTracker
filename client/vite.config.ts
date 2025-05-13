@@ -7,8 +7,16 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    host: '0.0.0.0',
-    port: 3000,
+    host: true, // Listen on all addresses
+    port: 5000,
+    strictPort: true,
+    cors: true,
+    hmr: {
+      clientPort: 443 // For HTTPS connections
+    },
+    watch: {
+      usePolling: true
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
