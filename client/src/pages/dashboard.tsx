@@ -255,17 +255,6 @@ export default function Dashboard() {
                       New Pipeline
                     </Button>
                   </Tooltip>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    size="small"
-                    onClick={() => {
-                      setPipelineModalOpen(true);
-                      console.log("Toggle button clicked, setting modal open to true");
-                    }}
-                  >
-                    Test Modal
-                  </Button>
                 </Box>
               </Box>
               <TableContainer>

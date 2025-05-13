@@ -127,7 +127,8 @@ async def get_jobs(
     type: Optional[str] = None,
     status: Optional[str] = None,
     dateFrom: Optional[str] = None,
-    dateTo: Optional[str] = None
+    dateTo: Optional[str] = None,
+    pipeline_id: Optional[str] = None
 ):
     filtered_jobs = list(jobs_db.values())
     
@@ -137,6 +138,9 @@ async def get_jobs(
     
     if status:
         filtered_jobs = [job for job in filtered_jobs if job.status == status]
+    
+    if pipeline_id:
+        filtered_jobs = [job for job in filtered_jobs if job.pipeline_id == pipeline_id]
     
     if dateFrom:
         date_from = datetime.fromisoformat(dateFrom.replace('Z', '+00:00'))
@@ -215,7 +219,7 @@ async def get_pipelines():
 @app.get("/api/pipelines/{pipeline_id}", response_model=Pipeline)
 async def get_pipeline(pipeline_id: str):
     if pipeline_id not in pipelines_db:
-        raise HTTPException(status_code=404, detail="Pipeline not found")
+        raise HTTPException(status_code=404, detail=f"Pipeline with ID {pipeline_id} not found")
     
     return pipelines_db[pipeline_id]
 
