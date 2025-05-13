@@ -40,7 +40,12 @@ export default function JobDetailsPage() {
       if (!res.ok) throw new Error('Failed to fetch job details');
       return res.json();
     },
-    refetchInterval: (data) => data?.status === 'processing' ? 2000 : false,
+    refetchInterval: (query) => {
+      if (query.state.data?.status === 'processing') {
+        return 2000;
+      }
+      return false;
+    },
   });
   
   const deleteJobMutation = useMutation({
@@ -285,7 +290,7 @@ export default function JobDetailsPage() {
                         boxShadow: 1
                       }
                     }}
-                    onClick={() => setLocation(`/jobs/${trigger.id}`)}
+                    onClick={() => setLocation(`/job/${trigger.id}`)}
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                       <Typography variant="subtitle1" fontWeight={500}>{trigger.id}</Typography>
