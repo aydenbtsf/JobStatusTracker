@@ -1,174 +1,173 @@
-import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { CreatePipelinePayload, PipelineStatus } from '@/lib/types';
-import { 
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Box,
-  CircularProgress
-} from '@mui/material';
+import { useState } from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { CreatePipelinePayload } from "@/lib/types";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { PipelineStatus } from "@shared/schema";
 
 interface CreatePipelineModalProps {
   open: boolean;
   onClose: () => void;
 }
 
+const formSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  description: z.string().optional(),
+  status: z.enum(["active", "archived", "completed"] as const),
+  metadata: z.string().optional().transform((val) => {
+    if (!val || val.trim() === '') return {};
+    try {
+      return JSON.parse(val);
+    } catch (e) {
+      throw new Error("Invalid JSON");
+    }
+  }),
+});
+
 export function CreatePipelineModal({ open, onClose }: CreatePipelineModalProps) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [status, setStatus] = useState<PipelineStatus>('active');
-  const [metadata, setMetadata] = useState('');
-  const [error, setError] = useState('');
-
-  const resetForm = () => {
-    setName('');
-    setDescription('');
-    setStatus('active');
-    setMetadata('');
-    setError('');
-  };
-
-  const handleClose = () => {
-    resetForm();
-    onClose();
-  };
-
-  const createPipelineMutation = useMutation({
-    mutationFn: async (data: CreatePipelinePayload) => {
-      return apiRequest('POST', '/api/pipelines', data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/pipelines'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
-      handleClose();
-    },
-    onError: (err: any) => {
-      setError(err?.message || 'Failed to create pipeline');
+  const { toast } = useToast();
+  
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      status: "active",
+      metadata: '{\n  "priority": "medium"\n}',
     },
   });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (!name.trim()) {
-      setError('Pipeline name is required');
-      return;
-    }
-
+  
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const payload: CreatePipelinePayload = {
-        name,
-        status,
-        description: description.trim() || undefined,
-        metadata: metadata.trim() ? JSON.parse(metadata) : undefined
+        name: values.name,
+        description: values.description,
+        status: values.status,
+        metadata: values.metadata,
       };
       
-      createPipelineMutation.mutate(payload);
-    } catch (err) {
-      if (metadata.trim()) {
-        setError('Invalid JSON format in metadata');
-      } else {
-        setError('Failed to create pipeline');
-      }
+      await apiRequest("POST", "/api/pipelines", payload);
+      
+      toast({
+        title: "Pipeline created",
+        description: "Your pipeline has been created successfully.",
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/pipelines'] });
+      form.reset();
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Failed to create pipeline",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
     }
   };
-
+  
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <form onSubmit={handleSubmit}>
-        <DialogTitle>Create New Pipeline</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ mb: 2 }}>
-            Create a new pipeline to group related jobs together.
-          </DialogContentText>
-          
-          {error && (
-            <Box sx={{ 
-              bgcolor: 'error.light', 
-              color: 'error.contrastText', 
-              p: 1, 
-              borderRadius: 1,
-              mb: 2
-            }}>
-              {error}
-            </Box>
-          )}
-          
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Pipeline Name"
-            fullWidth
-            variant="outlined"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            sx={{ mb: 2 }}
-          />
-          
-          <TextField
-            margin="dense"
-            label="Description (optional)"
-            fullWidth
-            variant="outlined"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            multiline
-            rows={2}
-            sx={{ mb: 2 }}
-          />
-          
-          <FormControl fullWidth margin="dense" sx={{ mb: 2 }}>
-            <InputLabel id="status-label">Status</InputLabel>
-            <Select
-              labelId="status-label"
-              value={status}
-              label="Status"
-              onChange={(e) => setStatus(e.target.value as PipelineStatus)}
-            >
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="archived">Archived</MenuItem>
-              <MenuItem value="completed">Completed</MenuItem>
-            </Select>
-          </FormControl>
-          
-          <TextField
-            margin="dense"
-            label="Metadata (JSON format, optional)"
-            fullWidth
-            variant="outlined"
-            value={metadata}
-            onChange={(e) => setMetadata(e.target.value)}
-            multiline
-            rows={3}
-            placeholder='{"key": "value"}'
-            helperText="Enter valid JSON object"
-          />
-        </DialogContent>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Create New Pipeline</DialogTitle>
+          <DialogDescription>
+            Create a new pipeline to organize related jobs. Fill out the information below.
+          </DialogDescription>
+        </DialogHeader>
         
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button 
-            type="submit" 
-            variant="contained" 
-            disabled={createPipelineMutation.isPending}
-            startIcon={createPipelineMutation.isPending && <CircularProgress size={16} color="inherit" />}
-          >
-            {createPipelineMutation.isPending ? 'Creating...' : 'Create Pipeline'}
-          </Button>
-        </DialogActions>
-      </form>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pipeline Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter pipeline name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Enter pipeline description (optional)" 
+                      {...field} 
+                      rows={3}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select pipeline status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="archived">Archived</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="metadata"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Metadata (JSON)</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Enter metadata as JSON (optional)" 
+                      {...field} 
+                      rows={5}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit">Create Pipeline</Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
     </Dialog>
   );
 }
