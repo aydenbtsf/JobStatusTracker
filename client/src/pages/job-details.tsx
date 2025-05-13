@@ -22,7 +22,6 @@ export default function JobDetailsPage() {
   const { data: job, isLoading, error } = useQuery<JobWithTriggers>({
     queryKey: [`/api/jobs/${jobId}`],
     enabled: !!jobId,
-    retry: 1,
   });
   
   const handleRetry = async () => {

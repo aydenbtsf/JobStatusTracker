@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { JobStatus } from "@shared/schema";
 
-export interface StatusCount {
+interface StatusCount {
   status: JobStatus | "all";
   count: number;
   label: string;
