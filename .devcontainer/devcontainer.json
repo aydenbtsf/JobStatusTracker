@@ -1,0 +1,19 @@
+{
+    "name": "neuwave-mono",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "ms-python.python",
+                "ms-python.vscode-pylance"
+            ]
+        }
+    },
+    "remoteUser": "node",
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {}
+    }
+} 

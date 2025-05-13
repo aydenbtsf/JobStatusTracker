@@ -1,0 +1,14 @@
+services:
+  devcontainer:
+    build:
+      context: ..
+      dockerfile: ./.devcontainer/Dockerfile
+    volumes:
+      - ../:/code
+    ports:
+      - 1337:1337
+      - 5173:5173
+    environment:
+      EXAMPLE_ENV_VARIABLE: example-value
+
+    tty: true
