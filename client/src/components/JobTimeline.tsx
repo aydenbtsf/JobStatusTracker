@@ -6,8 +6,9 @@ import {
   CircularProgress,
   Tooltip
 } from '@mui/material';
-import { format, parseISO } from 'date-fns';
-import { JobWithTriggers, JobType } from '@/lib/types';
+import { format, parseISO, differenceInMilliseconds } from 'date-fns';
+import { JobWithTriggers } from '@/lib/types';
+import { JobType } from '@shared/schema';
 import { getStatusColor } from '@/lib/utils';
 
 interface JobTimelineProps {
@@ -23,19 +24,67 @@ const jobTypeLabels: Record<JobType, string> = {
   waveForecast: 'Wave'
 };
 
+interface ProcessedJob {
+  job: JobWithTriggers;
+  displayName: string;
+  startPosition: number;
+  endPosition: number;
+  startTime: string;
+  endTime: string;
+}
+
 export function JobTimeline({ jobs, isLoading }: JobTimelineProps) {
   const theme = useTheme();
-  const [sortedJobs, setSortedJobs] = useState<JobWithTriggers[]>([]);
+  const [processedJobs, setProcessedJobs] = useState<ProcessedJob[]>([]);
   
   useEffect(() => {
     if (!jobs || jobs.length === 0) return;
     
     // Sort jobs by creation date
-    const sorted = [...jobs].sort((a, b) => 
+    const sortedJobs = [...jobs].sort((a, b) => 
       new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     );
     
-    setSortedJobs(sorted);
+    // Find the earliest and latest dates to calculate the timeline range
+    const earliestDate = new Date(sortedJobs[0].created_at);
+    const latestDate = sortedJobs.reduce((latest, job) => {
+      const updatedAt = new Date(job.updated_at);
+      return updatedAt > latest ? updatedAt : latest;
+    }, new Date(sortedJobs[0].updated_at));
+    
+    // Calculate total timeline duration in milliseconds
+    const totalDuration = differenceInMilliseconds(latestDate, earliestDate);
+    
+    // Process job positions and times
+    const processed = sortedJobs.map(job => {
+      const jobStartTime = new Date(job.created_at);
+      const jobEndTime = new Date(job.updated_at);
+      
+      // Calculate positions as percentages
+      const startPosition = totalDuration === 0 ? 0 : 
+        (differenceInMilliseconds(jobStartTime, earliestDate) / totalDuration) * 100;
+        
+      const endPosition = totalDuration === 0 ? 100 : 
+        (differenceInMilliseconds(jobEndTime, earliestDate) / totalDuration) * 100;
+      
+      // Format times for display
+      const startTimeFormatted = format(jobStartTime, 'hh:mm:00 a');
+      const endTimeFormatted = format(jobEndTime, 'hh:mm:00 a');
+      
+      const jobType = job.type as JobType;
+      const displayName = jobTypeLabels[jobType] || job.type;
+      
+      return {
+        job,
+        displayName,
+        startPosition,
+        endPosition,
+        startTime: startTimeFormatted,
+        endTime: endTimeFormatted
+      };
+    });
+    
+    setProcessedJobs(processed);
   }, [jobs]);
   
   if (isLoading) {
@@ -56,21 +105,17 @@ export function JobTimeline({ jobs, isLoading }: JobTimelineProps) {
     );
   }
   
-  // Always use success color for the timeline markers to match the design
-  const getTimelineMarkerColor = () => {
-    return theme.palette.success.main;
-  };
-  
-  // Calculate the total width available for the timeline
-  const timelineWidth = sortedJobs.length > 1 ? '100%' : '500px';
+  // Always use success color for the timeline elements to match the design
+  const getTimelineColor = () => theme.palette.success.main;
+  const getTimelineLineColor = () => theme.palette.success.light;
   
   return (
     <Box sx={{ width: '100%', px: 2, py: 3 }}>
       <Box 
         sx={{ 
           position: 'relative', 
-          width: timelineWidth, 
-          height: 80, 
+          width: '100%', 
+          height: 100, 
           mx: 'auto'
         }}
       >
@@ -81,46 +126,60 @@ export function JobTimeline({ jobs, isLoading }: JobTimelineProps) {
             top: 30, 
             left: 0, 
             right: 0, 
-            height: 2, 
-            bgcolor: theme.palette.success.light,
+            height: 3, 
+            bgcolor: getTimelineLineColor(),
             zIndex: 1
           }} 
         />
         
-        {sortedJobs.map((job, index) => {
-          // Calculate position as percentage of the timeline width
-          const position = sortedJobs.length > 1 
-            ? (index / (sortedJobs.length - 1)) * 100 
-            : 50;
-            
-          const jobType = job.type as JobType;
-          const displayName = jobTypeLabels[jobType] || job.type;
-          const formattedTime = format(parseISO(job.created_at), 'hh:mm:00 a');
-            
+        {processedJobs.map((processedJob) => {
+          const { job, displayName, startPosition, endPosition, startTime } = processedJob;
+          
+          // Ensure minimum segment width for visibility
+          const segmentWidth = Math.max(endPosition - startPosition, 1);
+          
           return (
-            <Tooltip 
-              key={job.id}
-              title={
-                <Box>
-                  <Typography variant="subtitle2">
-                    {displayName} - {job.status}
-                  </Typography>
-                  <Typography variant="body2">
-                    ID: {job.id}
-                  </Typography>
-                  <Typography variant="body2">
-                    Created: {format(parseISO(job.created_at), 'MMM d, yyyy HH:mm:ss')}
-                  </Typography>
-                </Box>
-              }
-            >
+            <Box key={job.id}>
+              {/* Timeline segment representing job duration */}
+              <Tooltip 
+                title={
+                  <Box>
+                    <Typography variant="subtitle2">
+                      {displayName} - {job.status}
+                    </Typography>
+                    <Typography variant="body2">
+                      ID: {job.id}
+                    </Typography>
+                    <Typography variant="body2">
+                      Created: {format(parseISO(job.created_at), 'MMM d, yyyy HH:mm:ss')}
+                    </Typography>
+                    <Typography variant="body2">
+                      Updated: {format(parseISO(job.updated_at), 'MMM d, yyyy HH:mm:ss')}
+                    </Typography>
+                  </Box>
+                }
+              >
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    left: `${startPosition}%`,
+                    top: 30,
+                    width: `${segmentWidth}%`,
+                    height: 3,
+                    bgcolor: getTimelineColor(),
+                    zIndex: 2
+                  }}
+                />
+              </Tooltip>
+              
+              {/* Start marker with job type label and time */}
               <Box
                 sx={{
                   position: 'absolute',
-                  left: `${position}%`,
+                  left: `${startPosition}%`,
                   top: 20,
                   transform: 'translateX(-50%)',
-                  zIndex: 2,
+                  zIndex: 3,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -132,7 +191,7 @@ export function JobTimeline({ jobs, isLoading }: JobTimelineProps) {
                     width: 16, 
                     height: 16, 
                     borderRadius: '50%', 
-                    bgcolor: getTimelineMarkerColor(),
+                    bgcolor: getTimelineColor(),
                     mb: 1,
                     border: '2px solid white',
                     boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
@@ -156,10 +215,48 @@ export function JobTimeline({ jobs, isLoading }: JobTimelineProps) {
                   color="text.secondary"
                   sx={{ fontSize: '0.7rem' }}
                 >
-                  {formattedTime}
+                  {startTime}
                 </Typography>
               </Box>
-            </Tooltip>
+              
+              {/* End marker if the job has a different end position */}
+              {endPosition > startPosition + 2 && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    left: `${endPosition}%`,
+                    top: 20,
+                    transform: 'translateX(-50%)',
+                    zIndex: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}
+                >
+                  {/* Timeline marker dot */}
+                  <Box 
+                    sx={{ 
+                      width: 16, 
+                      height: 16, 
+                      borderRadius: '50%', 
+                      bgcolor: getTimelineColor(),
+                      mb: 1,
+                      border: '2px solid white',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                    }} 
+                  />
+                  
+                  {/* Time label */}
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary"
+                    sx={{ fontSize: '0.7rem' }}
+                  >
+                    {processedJob.endTime}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
           );
         })}
       </Box>
