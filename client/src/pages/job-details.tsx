@@ -1,6 +1,6 @@
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { JobWithTriggers } from "@/lib/types";
+import { JobWithPipeline } from "@/lib/types";
 import { formatFullDate, getStatusColor, prettyJSON } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
@@ -32,7 +32,7 @@ export default function JobDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const [_, setLocation] = useLocation();
   
-  const { data: job, isLoading, error } = useQuery<JobWithTriggers>({
+  const { data: job, isLoading, error } = useQuery<JobWithPipeline>({
     queryKey: [`/api/jobs/${id}`],
     queryFn: async ({ queryKey }) => {
       const [url] = queryKey as [string];
@@ -145,6 +145,41 @@ export default function JobDetailsPage() {
           
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, mb: 3 }}>
             <Box sx={{ flex: 1 }}>
+              <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  Pipeline Information
+                </Typography>
+                <Stack spacing={2}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Pipeline</Typography>
+                    <Typography variant="body1" fontWeight={500}>{job.pipeline.name}</Typography>
+                  </Box>
+                  
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Pipeline ID</Typography>
+                    <Typography variant="body1">{job.pipeline_id}</Typography>
+                  </Box>
+                  
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Status</Typography>
+                    <Chip 
+                      label={job.pipeline.status}
+                      color={job.pipeline.status === "active" ? "success" : 
+                             job.pipeline.status === "completed" ? "info" : "default"}
+                      size="small"
+                      sx={{ mt: 0.5 }}
+                    />
+                  </Box>
+                  
+                  {job.pipeline.description && (
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">Description</Typography>
+                      <Typography variant="body1">{job.pipeline.description}</Typography>
+                    </Box>
+                  )}
+                </Stack>
+              </Paper>
+              
               <Paper variant="outlined" sx={{ p: 2 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Job Information
