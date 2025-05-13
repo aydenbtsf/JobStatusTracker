@@ -62,7 +62,7 @@ export function JobFilters({ onFilterChange }: JobFiltersProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">All Types</SelectItem>
+                      <SelectItem value="all">All Types</SelectItem>
                       <SelectItem value="fetchTerrain">Fetch Terrain</SelectItem>
                       <SelectItem value="weatherForecast">Weather Forecast</SelectItem>
                       <SelectItem value="tideForecast">Tide Forecast</SelectItem>
@@ -89,7 +89,7 @@ export function JobFilters({ onFilterChange }: JobFiltersProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">All Statuses</SelectItem>
+                      <SelectItem value="all">All Statuses</SelectItem>
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="processing">Processing</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>

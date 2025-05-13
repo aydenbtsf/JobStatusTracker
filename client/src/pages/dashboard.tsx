@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useRoute } from "wouter";
 import { Sidebar } from "@/components/sidebar";
-import { StatusTabs } from "@/components/status-tabs";
+import { StatusTabs, StatusCount } from "@/components/status-tabs";
 import { JobFilters } from "@/components/job-filters";
 import { JobCard } from "@/components/job-card";
 import { CreateJobModal } from "@/components/create-job-modal";
@@ -13,7 +13,7 @@ import { JobWithTriggers } from "@/lib/types";
 import { Search, Menu, Bell, Plus } from "lucide-react";
 import { JobStatus } from "@shared/schema";
 
-const statusCounts = [
+const statusCounts: StatusCount[] = [
   { status: "all", count: 0, label: "All Jobs" },
   { status: "pending", count: 0, label: "Pending" },
   { status: "processing", count: 0, label: "Processing" },
@@ -41,11 +41,11 @@ export default function Dashboard() {
   const { data, isLoading, error } = useQuery<JobWithTriggers[]>({
     queryKey: ['/api/jobs', filters],
     queryFn: async ({ queryKey }) => {
-      const [_, appliedFilters] = queryKey;
+      const [_, appliedFilters] = queryKey as [string, typeof filters];
       const filterParams = new URLSearchParams();
       
-      if (appliedFilters.type) filterParams.append('type', appliedFilters.type);
-      if (appliedFilters.status) filterParams.append('status', appliedFilters.status);
+      if (appliedFilters.type && appliedFilters.type !== "all") filterParams.append('type', appliedFilters.type);
+      if (appliedFilters.status && appliedFilters.status !== "all") filterParams.append('status', appliedFilters.status);
       if (appliedFilters.dateFrom) filterParams.append('dateFrom', appliedFilters.dateFrom);
       if (appliedFilters.dateTo) filterParams.append('dateTo', appliedFilters.dateTo);
       
@@ -65,12 +65,14 @@ export default function Dashboard() {
   // Update status counts
   const counts = statusCounts.map(item => {
     if (item.status === "all") {
-      return { ...item, count: data?.length || 0 };
+      return { ...item, count: Array.isArray(data) ? data.length : 0 };
     }
     
     return {
       ...item,
-      count: data?.filter(job => job.status === item.status).length || 0
+      count: Array.isArray(data) 
+        ? data.filter(job => job.status === item.status).length 
+        : 0
     };
   });
   

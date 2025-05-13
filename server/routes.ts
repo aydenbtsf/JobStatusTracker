@@ -16,7 +16,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api', async (req, res, next) => {
     try {
       // Forward the request to FastAPI
-      const url = `http://localhost:8000${req.url}`;
+      const url = `http://localhost:8000/api${req.url}`;
       const options: RequestInit = {
         method: req.method,
         headers: {
