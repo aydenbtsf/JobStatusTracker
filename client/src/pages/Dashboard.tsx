@@ -16,7 +16,23 @@ import {
   Tabs,
   Tab,
   Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  TableSortLabel,
+  ButtonGroup,
 } from "@mui/material";
+import { 
+  CheckCircle, 
+  Clock, 
+  Loader,
+  AlertCircle,
+  MoreHorizontal,
+} from "lucide-react";
 import Layout from "../components/Layout";
 import { Job, JobStatus } from "../lib/types";
 
@@ -31,60 +47,14 @@ function getStatusColor(status: string): "default" | "primary" | "secondary" | "
   }
 }
 
-function JobCard({ job }: { job: Job }) {
-  return (
-    <Card sx={{ mb: 2 }}>
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Link href={`/jobs/${job.id}`}>
-            <Typography variant="h6" fontWeight="bold" sx={{ cursor: 'pointer', color: 'primary.main' }}>
-              {job.id.substring(0, 8)}...
-            </Typography>
-          </Link>
-          <Chip 
-            label={job.status} 
-            color={getStatusColor(job.status)}
-            size="small" 
-          />
-        </Box>
-        
-        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            Type: <Box component="span" fontWeight="medium">{job.type}</Box>
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Created: <Box component="span" fontWeight="medium">{new Date(job.created_at).toLocaleString()}</Box>
-          </Typography>
-        </Stack>
-        
-        {job.error_message && (
-          <Alert severity="error" sx={{ mb: 2, fontSize: "0.75rem" }}>
-            {job.error_message}
-          </Alert>
-        )}
-        
-        <Divider sx={{ my: 2 }} />
-        
-        <Typography variant="subtitle2" gutterBottom>
-          Arguments
-        </Typography>
-        <Box 
-          component="pre" 
-          sx={{ 
-            bgcolor: 'grey.50', 
-            p: 1.5,
-            borderRadius: 1, 
-            overflow: 'auto',
-            fontSize: '0.75rem',
-            border: '1px solid',
-            borderColor: 'grey.200'
-          }}
-        >
-          {JSON.stringify(job.args, null, 2)}
-        </Box>
-      </CardContent>
-    </Card>
-  );
+function getStatusIcon(status: string) {
+  switch (status) {
+    case "pending": return <Clock size={16} color="#f59e0b" />;
+    case "processing": return <Loader size={16} color="#3b82f6" />;
+    case "completed": return <CheckCircle size={16} color="#10b981" />;
+    case "failed": return <AlertCircle size={16} color="#ef4444" />;
+    default: return null;
+  }
 }
 
 interface StatusCount {
@@ -97,7 +67,11 @@ export default function Dashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [activeTab, setActiveTab] = useState<"all" | JobStatus>("all");
+  const [activeTab, setActiveTab] = useState<string>("Jobs");
+
+  // Set sort state
+  const [order, setOrder] = useState<'asc' | 'desc'>('desc');
+  const [orderBy, setOrderBy] = useState<keyof Job>('created_at');
 
   const fetchJobs = async () => {
     try {
@@ -120,107 +94,236 @@ export default function Dashboard() {
     fetchJobs();
   }, []);
 
-  // Calculate counts for each status
-  const statusCounts: StatusCount[] = [
-    { status: "all", count: jobs.length, label: "All Jobs" },
-    { status: "pending", count: jobs.filter(job => job.status === "pending").length, label: "Pending" },
-    { status: "processing", count: jobs.filter(job => job.status === "processing").length, label: "Processing" },
-    { status: "completed", count: jobs.filter(job => job.status === "completed").length, label: "Completed" },
-    { status: "failed", count: jobs.filter(job => job.status === "failed").length, label: "Failed" },
-  ];
+  const handleSort = (property: keyof Job) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
 
-  // Filter jobs based on active tab
-  const filteredJobs = activeTab === "all" 
-    ? jobs 
-    : jobs.filter(job => job.status === activeTab);
+  // Sort jobs based on current sort settings
+  const sortedJobs = [...jobs].sort((a, b) => {
+    if (orderBy === 'created_at' || orderBy === 'updated_at') {
+      const dateA = new Date(a[orderBy]).getTime();
+      const dateB = new Date(b[orderBy]).getTime();
+      return order === 'asc' ? dateA - dateB : dateB - dateA;
+    }
+    
+    // For other string fields
+    const aValue = a[orderBy] as string;
+    const bValue = b[orderBy] as string;
+    return order === 'asc' 
+      ? aValue.localeCompare(bValue)
+      : bValue.localeCompare(aValue);
+  });
+
+  // Format the date to match the screenshot (May 12, 11:10 AM)
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const getRowStatusColor = (status: string) => {
+    switch (status) {
+      case "completed": return "#ecfdf5"; // Very light green
+      case "processing": return "#eff6ff"; // Very light blue
+      case "pending": return "#fffbeb"; // Very light amber
+      case "failed": return "#fef2f2"; // Very light red
+      default: return "transparent";
+    }
+  };
 
   return (
-    <Layout title="Job Dashboard" onRefresh={fetchJobs} isLoading={loading}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="body1" color="text.secondary" paragraph>
-          View and manage your forecast jobs from a single dashboard.
-        </Typography>
+    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Top Tab Navigation */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+        <ButtonGroup variant="text" sx={{ p: 1 }}>
+          <Button 
+            onClick={() => setActiveTab("New Forecast")} 
+            variant={activeTab === "New Forecast" ? "contained" : "text"}
+          >
+            New Forecast
+          </Button>
+          <Button 
+            onClick={() => setActiveTab("Jobs")} 
+            variant={activeTab === "Jobs" ? "contained" : "text"}
+          >
+            Jobs
+          </Button>
+          <Button 
+            onClick={() => setActiveTab("Forecast Results")} 
+            variant={activeTab === "Forecast Results" ? "contained" : "text"}
+          >
+            Forecast Results
+          </Button>
+        </ButtonGroup>
       </Box>
-
-      {/* Status Tabs */}
-      <Paper sx={{ mb: 4 }}>
-        <Tabs
-          value={activeTab}
-          onChange={(_, newValue) => setActiveTab(newValue)}
-          indicatorColor="primary"
-          textColor="primary"
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          {statusCounts.map((item) => (
-            <Tab 
-              key={item.status} 
-              value={item.status} 
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <span>{item.label}</span>
-                  <Chip 
-                    size="small" 
-                    label={item.count} 
-                    color={getStatusColor(item.status)}
-                    sx={{ ml: 1, height: 20, minWidth: 20 }} 
-                  />
-                </Box>
-              } 
-            />
-          ))}
-        </Tabs>
-      </Paper>
       
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <CircularProgress />
-        </Box>
-      ) : error ? (
-        <Alert 
-          severity="error" 
-          action={
-            <Button 
-              color="inherit" 
-              size="small" 
-              onClick={fetchJobs}
-            >
-              Retry
-            </Button>
-          }
-        >
-          Failed to load jobs: {error.message}
-        </Alert>
-      ) : (
-        <Box>
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" color="text.secondary">
-              {filteredJobs.length} job{filteredJobs.length !== 1 ? 's' : ''} found
+      <Box sx={{ display: 'flex', flex: 1, p: 2, gap: 2 }}>
+        {/* Left panel - Job list */}
+        <Card sx={{ flex: 2, overflow: 'auto' }}>
+          <CardContent sx={{ p: 3 }}>
+            <Typography variant="h5" component="div" sx={{ mb: 0.5, fontWeight: 'bold' }}>
+              Jobs
             </Typography>
-          </Box>
-          
-          {filteredJobs.length === 0 ? (
-            <Card variant="outlined" sx={{ textAlign: 'center', py: 6 }}>
-              <CardContent>
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  No jobs found
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {activeTab === "all" 
-                    ? "Create new jobs to see them appear here." 
-                    : `No ${activeTab} jobs found. Try a different filter.`}
-                </Typography>
-              </CardContent>
-            </Card>
-          ) : (
-            <Stack spacing={2}>
-              {filteredJobs.map((job) => (
-                <JobCard key={job.id} job={job} />
-              ))}
-            </Stack>
-          )}
-        </Box>
-      )}
-    </Layout>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              View and manage forecast jobs
+            </Typography>
+            
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : error ? (
+              <Alert 
+                severity="error" 
+                action={
+                  <Button 
+                    color="inherit" 
+                    size="small" 
+                    onClick={fetchJobs}
+                  >
+                    Retry
+                  </Button>
+                }
+              >
+                Failed to load jobs: {error.message}
+              </Alert>
+            ) : (
+              <TableContainer component={Paper} variant="outlined" sx={{ mt: 2 }}>
+                <Table size="medium">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>
+                        <TableSortLabel
+                          active={orderBy === 'id'}
+                          direction={orderBy === 'id' ? order : 'asc'}
+                          onClick={() => handleSort('id')}
+                        >
+                          ID
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell>
+                        <TableSortLabel
+                          active={orderBy === 'type'}
+                          direction={orderBy === 'type' ? order : 'asc'}
+                          onClick={() => handleSort('type')}
+                        >
+                          Type
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell>
+                        <TableSortLabel
+                          active={orderBy === 'status'}
+                          direction={orderBy === 'status' ? order : 'asc'}
+                          onClick={() => handleSort('status')}
+                        >
+                          Status
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell>
+                        <TableSortLabel
+                          active={orderBy === 'created_at'}
+                          direction={orderBy === 'created_at' ? order : 'asc'}
+                          onClick={() => handleSort('created_at')}
+                        >
+                          Created
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell>
+                        <TableSortLabel
+                          active={orderBy === 'updated_at'}
+                          direction={orderBy === 'updated_at' ? order : 'asc'}
+                          onClick={() => handleSort('updated_at')}
+                        >
+                          Updated
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell align="center"></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {sortedJobs.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center">
+                          <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
+                            No jobs found
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      sortedJobs.map((job) => (
+                        <TableRow 
+                          key={job.id}
+                          sx={{ 
+                            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' },
+                            bgcolor: getRowStatusColor(job.status),
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => window.location.href = `/jobs/${job.id}`}
+                        >
+                          <TableCell sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {getStatusIcon(job.status)}
+                            <span>{`job-${job.id.substring(0, 3)}`}</span>
+                          </TableCell>
+                          <TableCell>
+                            {job.type === 'weatherForecast' ? 'Weather' : 
+                              job.type === 'waveForecast' ? 'Wave' : 
+                              job.type === 'tideForecast' ? 'Tide' : 
+                              job.type === 'fetchTerrain' ? 'Terrain' : job.type}
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+                              size="small"
+                              color={getStatusColor(job.status)}
+                              variant="filled"
+                              sx={{ 
+                                height: '24px',
+                                borderRadius: '12px',
+                                fontWeight: 500,
+                                minWidth: '90px',
+                                textAlign: 'center',
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>{formatDate(job.created_at)}</TableCell>
+                          <TableCell>{formatDate(job.updated_at)}</TableCell>
+                          <TableCell align="center">
+                            <IconButton 
+                              size="small" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Show menu/actions for the job
+                              }}
+                            >
+                              <MoreHorizontal size={16} />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </CardContent>
+        </Card>
+        
+        {/* Right panel - Job details */}
+        <Card sx={{ flex: 1 }}>
+          <CardContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            <Typography variant="body1" color="text.secondary">
+              Select a job to view details
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+    </Box>
   );
 }
