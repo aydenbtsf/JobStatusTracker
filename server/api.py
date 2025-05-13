@@ -18,7 +18,7 @@ app = FastAPI(title="Job Tracking API")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://localhost:3000", "http://0.0.0.0:3000"],  # Frontend origins
+    allow_origins=["*"],  # Allow all origins in development
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],

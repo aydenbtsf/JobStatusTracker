@@ -56,7 +56,9 @@ export default function Dashboard() {
       if (appliedFilters.dateTo) filterParams.append('dateTo', appliedFilters.dateTo);
       
       const queryString = filterParams.toString() ? `?${filterParams.toString()}` : '';
-      const fullUrl = `http://localhost:8000/api/jobs${queryString}`;
+      // Get the API base URL from environment or use default
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const fullUrl = `${apiBaseUrl}/api/jobs${queryString}`;
       const response = await fetch(fullUrl, {
         credentials: 'include'
       });

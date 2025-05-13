@@ -1,7 +1,7 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
-// API base URL for FastAPI server
-const API_BASE_URL = 'http://localhost:8000';
+// API base URL for FastAPI server from environment variable
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
