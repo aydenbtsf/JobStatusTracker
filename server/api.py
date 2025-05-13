@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 import uvicorn
 
-from models import Job, JobType, JobStatus, WaveForecastEntry, WaveForecastData, CreateJobPayload
+from server.models import Job, JobType, JobStatus, WaveForecastEntry, WaveForecastData, CreateJobPayload
 
 app = FastAPI(title="Job Tracking API")
 

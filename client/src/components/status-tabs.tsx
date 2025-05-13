@@ -6,7 +6,8 @@ import {
   Tab, 
   styled, 
   Chip,
-  Typography
+  Typography,
+  ButtonBase
 } from "@mui/material";
 
 interface StatusCount {
@@ -19,21 +20,33 @@ interface StatusTabsProps {
   counts: StatusCount[];
 }
 
-// Styled Tab component with custom underline and hover effects
-const StyledTab = styled(Tab)(({ theme }) => ({
+// Styled components
+const TabsContainer = styled(Box)(({ theme }) => ({
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  marginBottom: theme.spacing(3),
+}));
+
+const TabsWrapper = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  overflowX: 'auto',
+}));
+
+const TabItem = styled(ButtonBase, {
+  shouldForwardProp: (prop) => prop !== 'active'
+})<{ active?: boolean }>(({ theme, active }) => ({
+  padding: theme.spacing(1.5, 2),
+  marginRight: theme.spacing(1),
+  borderBottom: '2px solid',
+  borderBottomColor: active ? theme.palette.primary.main : 'transparent',
+  color: active ? theme.palette.primary.main : theme.palette.text.secondary,
+  fontWeight: active ? 500 : 400,
   textTransform: 'none',
-  fontWeight: 500,
-  fontSize: '0.875rem',
-  minWidth: 0,
-  marginRight: theme.spacing(3),
-  color: theme.palette.text.secondary,
-  '&.Mui-selected': {
-    color: theme.palette.primary.main,
-  },
   '&:hover': {
-    color: theme.palette.text.primary,
-    opacity: 1,
+    color: theme.palette.primary.main,
+    borderBottomColor: active ? theme.palette.primary.main : theme.palette.primary.light,
+    backgroundColor: 'transparent',
   },
+  transition: 'all 0.2s',
 }));
 
 // Helper to get appropriate variant based on status
@@ -50,55 +63,44 @@ function getStatusColorVariant(status: StatusCount["status"]): "default" | "prim
 export function StatusTabs({ counts }: StatusTabsProps) {
   const [location] = useLocation();
 
-  // Determine which tab is active based on URL
-  const getActiveTab = () => {
-    if (location === "/" || !location.includes("status")) {
-      return 0; // 'All' tab
-    }
-    
-    const statusIndex = counts.findIndex(item => 
-      location.includes(`status=${item.status}`) && item.status !== "all"
-    );
-    
-    return statusIndex !== -1 ? statusIndex : 0;
-  };
-
   // Generate URL for each tab
   const getTabLink = (status: StatusCount["status"]) => {
     if (status === "all") return "/";
     return `/?status=${status}`;
   };
+  
+  // Check if tab is active
+  const isActive = (status: StatusCount["status"]) => {
+    if (status === "all") {
+      return location === "/" || !location.includes("status");
+    }
+    return location.includes(`status=${status}`);
+  };
 
   return (
-    <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-      <Tabs 
-        value={getActiveTab()} 
-        indicatorColor="primary"
-        textColor="primary"
-        aria-label="job status tabs"
-      >
-        {counts.map((item, index) => (
-          <Tab
+    <TabsContainer>
+      <TabsWrapper>
+        {counts.map((item) => (
+          <TabItem
             key={item.status}
             component={Link}
             href={getTabLink(item.status)}
-            value={index}
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography component="span" variant="body2">
-                  {item.label}
-                </Typography>
-                <Chip
-                  label={item.count}
-                  size="small"
-                  color={getStatusColorVariant(item.status)}
-                  sx={{ ml: 1 }}
-                />
-              </Box>
-            }
-          />
+            active={isActive(item.status)}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography component="span" variant="body2">
+                {item.label}
+              </Typography>
+              <Chip
+                label={item.count}
+                size="small"
+                color={getStatusColorVariant(item.status)}
+                sx={{ ml: 1 }}
+              />
+            </Box>
+          </TabItem>
         ))}
-      </Tabs>
-    </Box>
+      </TabsWrapper>
+    </TabsContainer>
   );
 }
