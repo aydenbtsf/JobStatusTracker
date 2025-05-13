@@ -1,8 +1,19 @@
-import { Job, WaveForecastData, WaveForecastEntry, JobType, JobStatus } from "@shared/schema";
+import { Job, JobStatus, JobType } from "@shared/schema";
 
 export interface JobWithTriggers extends Job {
   triggers: Job[];
-  waveForecast?: WaveForecastData;
+  wave_forecast_data?: WaveForecastData;
+}
+
+export interface WaveForecastData {
+  data: Array<{
+    time: string;
+    height: number;
+    direction: string;
+    period: number;
+  }>;
+  location?: string;
+  unit?: string;
 }
 
 export interface JobFilters {
@@ -15,5 +26,5 @@ export interface JobFilters {
 export interface CreateJobPayload {
   type: JobType;
   args: Record<string, any>;
-  triggerIds?: string[];
+  trigger_ids?: string[];
 }
