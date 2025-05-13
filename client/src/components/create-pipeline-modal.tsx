@@ -75,7 +75,12 @@ export function CreatePipelineModal({ open, onClose }: CreatePipelineModalProps)
   };
   
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
+    >
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Pipeline</DialogTitle>

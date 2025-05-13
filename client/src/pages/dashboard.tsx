@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { JobWithTriggers, JobFilters } from "@/lib/types";
+import { JobWithTriggers, JobFilters, Pipeline } from "@/lib/types";
 import { JobStatus, JobType } from "@shared/schema";
 import { 
   Box, 
@@ -22,7 +22,8 @@ import {
   TableHead,
   TableRow,
   Link,
-  Tooltip
+  Tooltip,
+  Divider
 } from "@mui/material";
 import { 
   Clock, 
@@ -30,7 +31,8 @@ import {
   AlertCircle,
   RefreshCw,
   Plus,
-  GitBranch
+  GitBranch,
+  Activity
 } from "lucide-react";
 import { CreatePipelineModal } from "@/components/create-pipeline-modal";
 
@@ -77,6 +79,26 @@ export default function Dashboard() {
       
       if (!response.ok) {
         throw new Error('Failed to fetch jobs');
+      }
+      
+      return response.json();
+    }
+  });
+  
+  // Fetch pipelines
+  const { 
+    data: pipelines, 
+    isLoading: isPipelinesLoading, 
+    error: pipelinesError 
+  } = useQuery<Pipeline[]>({
+    queryKey: ['/api/pipelines'],
+    queryFn: async () => {
+      const response = await fetch('/api/pipelines', {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch pipelines');
       }
       
       return response.json();
@@ -195,7 +217,7 @@ export default function Dashboard() {
               </Box>
             </Box>
 
-            {/* Recent Jobs */}
+            {/* Pipelines */}
             <Paper 
               sx={{ 
                 mb: 4, 
@@ -205,7 +227,7 @@ export default function Dashboard() {
             >
               <Box sx={{ p: 3, borderBottom: '1px solid rgba(0, 0, 0, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h6" fontWeight="medium">
-                  Recent Jobs
+                  Pipelines
                 </Typography>
                 <Tooltip title="Create New Pipeline">
                   <Button
@@ -218,6 +240,113 @@ export default function Dashboard() {
                     New Pipeline
                   </Button>
                 </Tooltip>
+              </Box>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>NAME</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>STATUS</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>CREATED</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>DESCRIPTION</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {isPipelinesLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                          <CircularProgress size={24} />
+                        </TableCell>
+                      </TableRow>
+                    ) : pipelinesError ? (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                          <Typography color="error">Failed to load pipelines</Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : pipelines && pipelines.length > 0 ? (
+                      pipelines.map((pipeline) => (
+                        <TableRow 
+                          key={pipeline.id}
+                          sx={{ 
+                            '&:last-child td, &:last-child th': { border: 0 },
+                            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)', cursor: 'pointer' }
+                          }}
+                        >
+                          <TableCell component="th" scope="row">
+                            {pipeline.id}
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 500 }}>
+                            {pipeline.name}
+                          </TableCell>
+                          <TableCell>
+                            {pipeline.status === "active" && (
+                              <Chip
+                                label="Active"
+                                size="small"
+                                color="success"
+                                sx={{ textTransform: 'capitalize', '& .MuiChip-label': { pl: 0.5 } }}
+                              />
+                            )}
+                            {pipeline.status === "archived" && (
+                              <Chip
+                                label="Archived"
+                                size="small"
+                                color="default"
+                                sx={{ textTransform: 'capitalize', '& .MuiChip-label': { pl: 0.5 } }}
+                              />
+                            )}
+                            {pipeline.status === "completed" && (
+                              <Chip
+                                label="Completed"
+                                size="small"
+                                color="info"
+                                sx={{ textTransform: 'capitalize', '& .MuiChip-label': { pl: 0.5 } }}
+                              />
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {new Date(pipeline.created_at).toLocaleDateString('en-US', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric', 
+                              hour: '2-digit', 
+                              minute: '2-digit',
+                              hour12: false
+                            })}
+                          </TableCell>
+                          <TableCell sx={{ maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {pipeline.description || 'No description'}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                          <Typography variant="body1" color="text.secondary">
+                            No pipelines found
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+
+            {/* Recent Jobs */}
+            <Paper 
+              sx={{ 
+                mb: 4, 
+                boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+                overflow: 'hidden'
+              }}
+            >
+              <Box sx={{ p: 3, borderBottom: '1px solid rgba(0, 0, 0, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h6" fontWeight="medium">
+                  Recent Jobs
+                </Typography>
               </Box>
               <TableContainer>
                 <Table>
