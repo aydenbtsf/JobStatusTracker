@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from '@tanstack/react-router'
+import { useRoute, useLocation } from 'wouter';
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { JobWithPipeline } from "@/lib/types";
 import { formatFullDate, getStatusColor, prettyJSON } from "@/lib/utils";
@@ -17,18 +17,19 @@ import {
   Paper,
 } from "@mui/material";
 import { 
-  RepeatIcon,
-  TrashIcon,
-  ArrowLeftIcon,
-  ClockIcon,
-  CalendarIcon,
+  RotateCw,
+  Trash2,
+  ArrowLeft,
+  Clock,
+  Calendar,
 } from 'lucide-react';
 
 export default function JobDetailsPage() {
-  const { id } = useParams({ from: '/job/$id' })
-  const navigate = useNavigate()
+  const [, params] = useRoute<{ id: string }>('/job/:id');
+  const [, setLocation] = useLocation();
+  const id = params?.id;
   
-  const { data: job, isLoading, error } = useQuery<JobWithPipeline>({
+  const { data: job, isLoading, error, refetch } = useQuery<JobWithPipeline>({
     queryKey: [`/api/jobs/${id}`],
     queryFn: async ({ queryKey }) => {
       const [url] = queryKey as [string];
@@ -50,7 +51,7 @@ export default function JobDetailsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
-      navigate({ to: '/' })
+      setLocation('/')
     },
   });
   
@@ -75,7 +76,7 @@ export default function JobDetailsPage() {
   };
   
   const handleBack = () => {
-    navigate({ to: '/' })
+    setLocation('/')
   }
 
   if (isLoading) {
@@ -101,7 +102,7 @@ export default function JobDetailsPage() {
         </Alert>
         <Box sx={{ mt: 2 }}>
           <Button 
-            startIcon={<ArrowLeftIcon />} 
+            startIcon={<ArrowLeft />} 
             onClick={handleBack}
           >
             Back to Dashboard
@@ -115,7 +116,7 @@ export default function JobDetailsPage() {
     <Container sx={{ py: 4 }}>
       <Box sx={{ mb: 4, display: 'flex', alignItems: 'center' }}>
         <Button 
-          startIcon={<ArrowLeftIcon />} 
+          startIcon={<ArrowLeft />} 
           onClick={handleBack}
           sx={{ mr: 2 }}
         >
@@ -189,7 +190,7 @@ export default function JobDetailsPage() {
                   <Box>
                     <Typography variant="body2" color="text.secondary">Updated</Typography>
                     <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center' }}>
-                      <ClockIcon size={16} style={{ marginRight: '4px' }} />
+                      <Clock size={16} style={{ marginRight: '4px' }} />
                       {formatFullDate(job.updated_at)}
                     </Typography>
                   </Box>
@@ -197,7 +198,7 @@ export default function JobDetailsPage() {
                   <Box>
                     <Typography variant="body2" color="text.secondary">Created</Typography>
                     <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center' }}>
-                      <CalendarIcon size={16} style={{ marginRight: '4px' }} />
+                      <Calendar size={16} style={{ marginRight: '4px' }} />
                       {formatFullDate(job.created_at)}
                     </Typography>
                   </Box>
@@ -214,7 +215,7 @@ export default function JobDetailsPage() {
                   <Button 
                     variant="contained" 
                     color="primary"
-                    startIcon={<RepeatIcon />}
+                    startIcon={<RotateCw />}
                     onClick={handleRetry}
                     disabled={retryJobMutation.isPending || job.status === 'processing'}
                   >
@@ -224,7 +225,7 @@ export default function JobDetailsPage() {
                   <Button 
                     variant="outlined" 
                     color="error"
-                    startIcon={<TrashIcon />}
+                    startIcon={<Trash2 />}
                     onClick={handleDelete}
                     disabled={deleteJobMutation.isPending}
                   >
@@ -321,7 +322,7 @@ export default function JobDetailsPage() {
                         boxShadow: 1
                       }
                     }}
-                    onClick={() => navigate({ to: `/job/${trigger.id}` })}
+                    onClick={() => setLocation(`/job/${trigger.id}`)}
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                       <Typography variant="subtitle1" fontWeight={500}>{trigger.id}</Typography>

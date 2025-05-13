@@ -237,7 +237,11 @@ export default function Dashboard() {
                       </TableRow>
                     ) : pipelines && pipelines.length > 0 ? (
                       pipelines.map((pipeline) => (
-                        <StyledTableRow key={pipeline.id}>
+                        <StyledTableRow 
+                          key={pipeline.id}
+                          onClick={() => setLocation(`/pipeline/${pipeline.id}`)}
+                          sx={{ cursor: 'pointer' }}
+                        >
                           <TableCell component="th" scope="row">
                             {pipeline.id}
                           </TableCell>
@@ -326,7 +330,18 @@ export default function Dashboard() {
                             {job.id}
                           </TableCell>
                           <TableCell>
-                            {job.pipeline_id}
+                            <Button
+                              component="span"
+                              color="primary"
+                              size="small"
+                              sx={{ fontWeight: 500, minWidth: 0, p: 0, textTransform: 'none' }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLocation(`/pipeline/${job.pipeline_id}`);
+                              }}
+                            >
+                              {job.pipeline_id}
+                            </Button>
                           </TableCell>
                           <TableCell>{job.type}</TableCell>
                           <TableCell>

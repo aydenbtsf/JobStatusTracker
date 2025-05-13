@@ -11,8 +11,8 @@ export default ({ mode }) => {
     plugins: [react()],
     server: {
       host: '0.0.0.0',
-      port: 5000,
-      strictPort: true,
+      port: 5173,
+      strictPort: false,
       cors: {
         origin: '*',
       },

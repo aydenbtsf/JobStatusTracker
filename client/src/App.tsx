@@ -1,6 +1,11 @@
 import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { router, RouterProvider } from './lib/router'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Route, Switch } from 'wouter';
+import Layout from './components/Layout';
+import Dashboard from './pages/dashboard';
+import JobDetailsPage from './pages/job-details';
+import PipelineDetailsPage from './pages/pipeline-details';
+import NotFound from './pages/not-found';
 
 // Create a Material UI theme
 const theme = createTheme({
@@ -47,14 +52,21 @@ const theme = createTheme({
   },
 });
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <Layout>
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/job/:id" component={JobDetailsPage} />
+            <Route path="/pipeline/:id" component={PipelineDetailsPage} />
+            <Route component={NotFound} />
+          </Switch>
+        </Layout>
       </QueryClientProvider>
     </ThemeProvider>
   );
