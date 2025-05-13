@@ -22,7 +22,13 @@ const frontendEnv = {
   VITE_API_BASE_URL: 'http://localhost:8000',
   PORT: '5000'
 };
-const frontendProcess = spawn('npm', ['run', 'dev', '--', '--port', '5000'], {
+const frontendProcess = spawn('npm', [
+  'run', 
+  'dev', 
+  '--', 
+  '--port', '5000',
+  '--host'
+], {
   cwd: path.join(process.cwd(), 'client'),
   stdio: 'inherit',
   env: frontendEnv
