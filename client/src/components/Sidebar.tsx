@@ -17,9 +17,6 @@ import {
 import {
   LayoutDashboard,
   Waves,
-  CloudSun,
-  Droplets,
-  Mountain,
   Menu as MenuIcon,
   ChevronLeft,
   Settings,
@@ -50,10 +47,6 @@ export default function Sidebar() {
 
   const menuItems = [
     { text: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/" },
-    { text: "Weather Forecast", icon: <CloudSun size={20} />, path: "/weather" },
-    { text: "Wave Forecast", icon: <Waves size={20} />, path: "/waves" },
-    { text: "Tide Forecast", icon: <Droplets size={20} />, path: "/tides" },
-    { text: "Terrain Data", icon: <Mountain size={20} />, path: "/terrain" },
   ];
 
   const drawer = (
@@ -163,9 +156,14 @@ export default function Sidebar() {
         sx={{
           width: drawerWidth,
           flexShrink: 0,
+          zIndex: theme.zIndex.appBar - 1, // Ensure it sits below the AppBar
           "& .MuiDrawer-paper": {
             width: drawerWidth,
             boxSizing: "border-box",
+            border: 'none',
+            borderRight: '1px solid',
+            borderColor: 'divider',
+            position: 'fixed',
           },
         }}
       >

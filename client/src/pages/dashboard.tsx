@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { JobWithTriggers, JobFilters } from "@/lib/types";
 import { JobStatus, JobType } from "@shared/schema";
-import { JobCard } from "@/components/job-card";
 import { 
   Box, 
   Container, 
@@ -11,17 +10,25 @@ import {
   CircularProgress, 
   Alert, 
   Button, 
-  TextField,
   Grid,
   Card,
   CardContent,
   Chip,
-  Stack,
-  Tabs,
-  Tab,
-  InputAdornment
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Link
 } from "@mui/material";
-import { Search as SearchIcon } from "lucide-react";
+import { 
+  Clock, 
+  CheckCircle, 
+  AlertCircle,
+  RefreshCw 
+} from "lucide-react";
 
 interface StatusCount {
   status: "all" | JobStatus;
@@ -37,17 +44,6 @@ const statusCounts = [
   { status: "completed" as JobStatus, count: 0, label: "Completed" },
   { status: "failed" as JobStatus, count: 0, label: "Failed" },
 ];
-
-// Function to get color based on status
-function getStatusTabColor(status: StatusCount["status"]): "default" | "primary" | "secondary" | "success" | "error" | "warning" | "info" {
-  switch (status) {
-    case "pending": return "warning";
-    case "processing": return "info";
-    case "completed": return "success";
-    case "failed": return "error";
-    case "all": default: return "primary";
-  }
-}
 
 export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -133,69 +129,64 @@ export default function Dashboard() {
     return filters.status === status;
   };
 
+  // Helper function to get status chip color
+  const getStatusChipColor = (status: JobStatus) => {
+    switch (status) {
+      case "pending": return "default";
+      case "processing": return "info";
+      case "completed": return "success";
+      case "failed": return "error";
+      default: return "default";
+    }
+  };
+
+  // Helper function to get status icon
+  const getStatusIcon = (status: JobStatus) => {
+    switch (status) {
+      case "pending": return <Clock size={16} />;
+      case "processing": return <RefreshCw size={16} />;
+      case "completed": return <CheckCircle size={16} />;
+      case "failed": return <AlertCircle size={16} />;
+      default: return null;
+    }
+  };
+
+  // Status card data
+  type StatusCardItem = {
+    status: JobStatus;
+    count: number;
+    label: string;
+    description: string;
+    icon: JSX.Element;
+  };
+
+  const statusCardData: StatusCardItem[] = [
+    { 
+      status: "pending", 
+      count: data?.filter(job => job.status === "pending").length || 0,
+      label: "Pending", 
+      description: "Waiting to be processed",
+      icon: <Clock size={20} color="#9ca3af" />
+    },
+    { 
+      status: "processing", 
+      count: data?.filter(job => job.status === "processing").length || 0,
+      label: "Processing", 
+      description: "Currently running",
+      icon: <RefreshCw size={20} color="#3b82f6" />
+    },
+    { 
+      status: "completed", 
+      count: data?.filter(job => job.status === "completed").length || 0,
+      label: "Completed", 
+      description: "Successfully finished",
+      icon: <CheckCircle size={20} color="#22c55e" />
+    }
+  ];
+
   return (
-    <Box sx={{ py: 4 }}>
-      <Container>
-        <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
-          Job Dashboard
-        </Typography>
-        
-        {/* Status Tabs */}
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-          <Box sx={{ display: 'flex', overflowX: 'auto' }}>
-            {counts.map((item) => (
-              <Box 
-                key={item.status}
-                onClick={() => handleStatusChange(item.status)}
-                sx={{ 
-                  px: 2, 
-                  py: 1.5, 
-                  cursor: 'pointer',
-                  borderBottom: '2px solid',
-                  borderBottomColor: isActive(item.status) ? 'primary.main' : 'transparent',
-                  color: isActive(item.status) ? 'primary.main' : 'text.secondary',
-                  fontWeight: isActive(item.status) ? 500 : 400,
-                  display: 'flex',
-                  alignItems: 'center',
-                  '&:hover': {
-                    color: 'primary.main',
-                    borderBottomColor: isActive(item.status) ? 'primary.main' : 'primary.light',
-                  },
-                  transition: 'all 0.2s',
-                }}
-              >
-                <Typography variant="body2" sx={{ mr: 1 }}>
-                  {item.label}
-                </Typography>
-                <Chip
-                  label={item.count}
-                  size="small"
-                  color={getStatusTabColor(item.status)}
-                />
-              </Box>
-            ))}
-          </Box>
-        </Box>
-        
-        {/* Search */}
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            fullWidth
-            placeholder="Search jobs by ID or type..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon size={20} />
-                </InputAdornment>
-              ),
-            }}
-            size="small"
-          />
-        </Box>
-        
-        {/* Loading and Error States */}
+    <Box sx={{ py: 3 }}>
+      <Container>        
         {isLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
             <CircularProgress />
@@ -213,34 +204,151 @@ export default function Dashboard() {
           </Alert>
         ) : (
           <>
-            {/* Results Count */}
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                {filteredJobs?.length} job{filteredJobs?.length !== 1 ? 's' : ''} found
-              </Typography>
-            </Box>
-            
-            {/* Job Cards */}
-            {filteredJobs?.length ? (
-              <Stack spacing={2}>
-                {filteredJobs.map(job => (
-                  <JobCard key={job.id} job={job} />
-                ))}
-              </Stack>
-            ) : (
-              <Card variant="outlined">
-                <CardContent>
-                  <Box sx={{ textAlign: 'center', py: 4 }}>
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
-                      No jobs found
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Try adjusting your search or filter criteria.
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-            )}
+            {/* Status Cards */}
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
+              {statusCardData.map((card) => (
+                <Box key={card.status.toString()} sx={{ flexBasis: { xs: '100%', md: 'calc(33.33% - 16px)' } }}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        boxShadow: '0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ flex: '1 0 auto', p: 3 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                        <Typography variant="h6" component="div" fontWeight="medium">
+                          {card.label}
+                        </Typography>
+                        {card.icon}
+                      </Box>
+                      <Typography variant="h3" component="div" fontWeight="bold" sx={{ my: 1 }}>
+                        {card.count}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {card.description}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+
+            {/* Recent Jobs */}
+            <Paper 
+              sx={{ 
+                mb: 4, 
+                boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+                overflow: 'hidden'
+              }}
+            >
+              <Box sx={{ p: 3, borderBottom: '1px solid rgba(0, 0, 0, 0.08)' }}>
+                <Typography variant="h6" fontWeight="medium">
+                  Recent Jobs
+                </Typography>
+              </Box>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>TYPE</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>STATUS</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>CREATED</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>ACTIONS</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredJobs?.slice(0, 10).map((job) => (
+                      <TableRow 
+                        key={job.id}
+                        sx={{ 
+                          '&:last-child td, &:last-child th': { border: 0 },
+                          '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' }
+                        }}
+                      >
+                        <TableCell component="th" scope="row">
+                          {job.id}
+                        </TableCell>
+                        <TableCell>{job.type}</TableCell>
+                        <TableCell>
+                          {/* Use conditional rendering for the chip based on job status */}
+                          {job.status === "pending" && (
+                            <Chip
+                              label="Pending"
+                              size="small"
+                              color="default"
+                              icon={<Clock size={16} />}
+                              sx={{ textTransform: 'capitalize', '& .MuiChip-label': { pl: 0.5 } }}
+                            />
+                          )}
+                          {job.status === "processing" && (
+                            <Chip
+                              label="Processing"
+                              size="small"
+                              color="info"
+                              icon={<RefreshCw size={16} />}
+                              sx={{ textTransform: 'capitalize', '& .MuiChip-label': { pl: 0.5 } }}
+                            />
+                          )}
+                          {job.status === "completed" && (
+                            <Chip
+                              label="Completed"
+                              size="small"
+                              color="success"
+                              icon={<CheckCircle size={16} />}
+                              sx={{ textTransform: 'capitalize', '& .MuiChip-label': { pl: 0.5 } }}
+                            />
+                          )}
+                          {job.status === "failed" && (
+                            <Chip
+                              label="Failed"
+                              size="small"
+                              color="error"
+                              icon={<AlertCircle size={16} />}
+                              sx={{ textTransform: 'capitalize', '& .MuiChip-label': { pl: 0.5 } }}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(job.created_at).toLocaleDateString('en-US', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric', 
+                            hour: '2-digit', 
+                            minute: '2-digit',
+                            hour12: false
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          <Link 
+                            href={`/job/${job.id}`} 
+                            underline="hover"
+                            sx={{ cursor: 'pointer' }}
+                          >
+                            View Details
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {filteredJobs?.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                          <Typography variant="body1" color="text.secondary">
+                            No jobs found
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
           </>
         )}
       </Container>

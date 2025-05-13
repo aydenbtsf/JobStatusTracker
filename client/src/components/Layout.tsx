@@ -25,9 +25,11 @@ export default function Layout({ children, title, onRefresh, isLoading = false }
         component="main"
         sx={{
           flexGrow: 1,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          ml: { md: `${drawerWidth}px` },
+          width: isMobile ? '100%' : `calc(100% - ${drawerWidth}px)`,
+          ml: isMobile ? 0 : `${drawerWidth}px`,
           bgcolor: "background.default",
+          paddingLeft: 0,
+          marginLeft: 0,
         }}
       >
         <AppBar 
@@ -78,7 +80,7 @@ export default function Layout({ children, title, onRefresh, isLoading = false }
         </AppBar>
         
         {/* Page content */}
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ px: { xs: 1, md: 2 }, py: 2 }}>
           {children}
         </Box>
       </Box>

@@ -1,9 +1,5 @@
-import { useState, useEffect } from "react";
-import { Route, Switch } from "wouter";
 import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
 import Dashboard from "./pages/Dashboard";
-import JobDetails from "./pages/JobDetails";
-import NotFound from "./pages/NotFound";
 
 // Create a Material UI theme
 const theme = createTheme({
@@ -54,11 +50,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/jobs/:id" component={JobDetails} />
-        <Route component={NotFound} />
-      </Switch>
+      <Dashboard />
     </ThemeProvider>
   );
 }
