@@ -63,7 +63,7 @@ export default function Dashboard() {
   });
   
   // Update status counts
-  const counts = statusCounts.map(item => {
+  const counts: StatusCount[] = statusCounts.map(item => {
     if (item.status === "all") {
       return { ...item, count: Array.isArray(data) ? data.length : 0 };
     }
@@ -73,7 +73,7 @@ export default function Dashboard() {
       count: Array.isArray(data) 
         ? data.filter(job => job.status === item.status).length 
         : 0
-    };
+    } as StatusCount;
   });
   
   const handleFilterChange = (newFilters: {
@@ -95,11 +95,13 @@ export default function Dashboard() {
   };
   
   // Filter jobs by search term (client-side)
-  const filteredJobs = data?.filter(job => 
-    !searchTerm || 
-    job.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.type.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredJobs = Array.isArray(data) 
+    ? data.filter(job => 
+        !searchTerm || 
+        job.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.type.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : [];
 
   return (
     <div className="flex h-screen overflow-hidden">
