@@ -16,6 +16,11 @@ class JobStatus(str, Enum):
     COMPLETED = "completed"
     FAILED = "failed"
 
+class PipelineStatus(str, Enum):
+    ACTIVE = "active"
+    ARCHIVED = "archived"
+    COMPLETED = "completed"
+
 # Wave forecast data models
 class WaveForecastEntry(BaseModel):
     time: str
@@ -28,9 +33,20 @@ class WaveForecastData(BaseModel):
     location: Optional[str] = None
     unit: Optional[str] = None
 
+# Pipeline model
+class Pipeline(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    status: PipelineStatus
+    created_at: datetime
+    updated_at: datetime
+    metadata: Optional[Dict[str, Any]] = None
+
 # Forward reference for Job (to handle circular dependency with triggers)
 class Job(BaseModel):
     id: str
+    pipeline_id: str
     type: JobType
     status: JobStatus
     error_message: Optional[str] = None
@@ -39,6 +55,7 @@ class Job(BaseModel):
     args: Dict[str, Any]
     wave_forecast_data: Optional[WaveForecastData] = None
     triggers: List['Job'] = []
+    pipeline: Optional[Pipeline] = None
     
     class Config:
         arbitrary_types_allowed = True
@@ -46,5 +63,13 @@ class Job(BaseModel):
 # Create job payload model
 class CreateJobPayload(BaseModel):
     type: JobType
+    pipeline_id: str
     args: Dict[str, Any]
     trigger_ids: Optional[List[str]] = None
+
+# Create pipeline payload model
+class CreatePipelinePayload(BaseModel):
+    name: str
+    description: Optional[str] = None
+    status: PipelineStatus
+    metadata: Optional[Dict[str, Any]] = None

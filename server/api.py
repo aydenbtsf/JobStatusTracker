@@ -11,7 +11,11 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 import uvicorn
 
-from server.models import Job, JobType, JobStatus, WaveForecastEntry, WaveForecastData, CreateJobPayload
+from server.models import (
+    Job, JobType, JobStatus, PipelineStatus, Pipeline,
+    WaveForecastEntry, WaveForecastData, 
+    CreateJobPayload, CreatePipelinePayload
+)
 
 app = FastAPI(title="Job Tracking API")
 
@@ -26,9 +30,22 @@ app.add_middleware(
 
 # In-memory database
 jobs_db: Dict[str, Job] = {}
+pipelines_db: Dict[str, Pipeline] = {}
 
 # Sample initial data
 def generate_sample_data():
+    # Create a sample pipeline
+    pipeline_id = f"pipeline_{uuid.uuid4().hex[:10]}"
+    pipelines_db[pipeline_id] = Pipeline(
+        id=pipeline_id,
+        name="Bay Area Forecast Pipeline",
+        description="Pipeline for San Francisco Bay area forecasts and terrain data",
+        status=PipelineStatus.ACTIVE,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+        metadata={"region": "West Coast", "priority": "high"}
+    )
+    
     # Create sample wave forecast data
     wave_forecast_data = WaveForecastData(
         data=[
@@ -49,44 +66,52 @@ def generate_sample_data():
     # Create jobs with different statuses
     jobs_db[job1_id] = Job(
         id=job1_id,
+        pipeline_id=pipeline_id,
         type=JobType.FETCH_TERRAIN,
         status=JobStatus.PENDING,
         created_at=datetime.now(),
         updated_at=datetime.now(),
         args={"location": "San Francisco Bay", "resolution": "high", "format": "GeoJSON"},
-        triggers=[]
+        triggers=[],
+        pipeline=pipelines_db[pipeline_id]
     )
     
     jobs_db[job2_id] = Job(
         id=job2_id,
+        pipeline_id=pipeline_id,
         type=JobType.WEATHER_FORECAST,
         status=JobStatus.PROCESSING,
         created_at=datetime.now(),
         updated_at=datetime.now(),
         args={"location": "San Francisco Bay", "days": 5, "include_hourly": True},
-        triggers=[]
+        triggers=[],
+        pipeline=pipelines_db[pipeline_id]
     )
     
     jobs_db[job3_id] = Job(
         id=job3_id,
+        pipeline_id=pipeline_id,
         type=JobType.WAVE_FORECAST,
         status=JobStatus.COMPLETED,
         created_at=datetime.now(),
         updated_at=datetime.now(),
         args={"location": "San Francisco Bay", "days": 2, "include_direction": True},
         wave_forecast_data=wave_forecast_data,
-        triggers=[]
+        triggers=[],
+        pipeline=pipelines_db[pipeline_id]
     )
     
     jobs_db[job4_id] = Job(
         id=job4_id,
+        pipeline_id=pipeline_id,
         type=JobType.TIDE_FORECAST,
         status=JobStatus.FAILED,
         created_at=datetime.now(),
         updated_at=datetime.now(),
         error_message="API connection timed out after 30 seconds",
         args={"location": "San Francisco Bay", "days": 3},
-        triggers=[]
+        triggers=[],
+        pipeline=pipelines_db[pipeline_id]
     )
     
     # Set up job triggers
@@ -137,6 +162,10 @@ async def get_job(job_id: str):
 async def create_job(payload: CreateJobPayload):
     job_id = f"job_{uuid.uuid4().hex[:10]}"
     
+    # Validate pipeline exists
+    if payload.pipeline_id not in pipelines_db:
+        raise HTTPException(status_code=400, detail=f"Pipeline {payload.pipeline_id} not found")
+    
     # Validate triggers
     triggers = []
     if payload.trigger_ids:
@@ -148,12 +177,14 @@ async def create_job(payload: CreateJobPayload):
     # Create new job
     new_job = Job(
         id=job_id,
+        pipeline_id=payload.pipeline_id,
         type=payload.type,
         status=JobStatus.PENDING,
         created_at=datetime.now(),
         updated_at=datetime.now(),
         args=payload.args,
-        triggers=triggers
+        triggers=triggers,
+        pipeline=pipelines_db[payload.pipeline_id]
     )
     
     jobs_db[job_id] = new_job
@@ -176,6 +207,35 @@ async def retry_job(job_id: str):
     job.error_message = None
     
     return job
+
+@app.get("/api/pipelines", response_model=List[Pipeline])
+async def get_pipelines():
+    return list(pipelines_db.values())
+
+@app.get("/api/pipelines/{pipeline_id}", response_model=Pipeline)
+async def get_pipeline(pipeline_id: str):
+    if pipeline_id not in pipelines_db:
+        raise HTTPException(status_code=404, detail="Pipeline not found")
+    
+    return pipelines_db[pipeline_id]
+
+@app.post("/api/pipelines", response_model=Pipeline)
+async def create_pipeline(payload: CreatePipelinePayload):
+    pipeline_id = f"pipeline_{uuid.uuid4().hex[:10]}"
+    
+    # Create new pipeline
+    new_pipeline = Pipeline(
+        id=pipeline_id,
+        name=payload.name,
+        description=payload.description,
+        status=payload.status,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+        metadata=payload.metadata
+    )
+    
+    pipelines_db[pipeline_id] = new_pipeline
+    return new_pipeline
 
 @app.delete("/api/jobs/{job_id}")
 async def delete_job(job_id: str):

@@ -208,6 +208,7 @@ export default function Dashboard() {
                   <TableHead>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>PIPELINE</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>TYPE</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>STATUS</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>CREATED</TableCell>
@@ -227,6 +228,9 @@ export default function Dashboard() {
                         >
                           <TableCell component="th" scope="row">
                             {job.id}
+                          </TableCell>
+                          <TableCell>
+                            {job.pipeline_id}
                           </TableCell>
                           <TableCell>{job.type}</TableCell>
                           <TableCell>
