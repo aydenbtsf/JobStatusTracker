@@ -81,7 +81,7 @@ export function StatusTabs({ counts }: StatusTabsProps) {
           <Tab
             key={item.status}
             component={Link}
-            to={getTabLink(item.status)}
+            href={getTabLink(item.status)}
             value={index}
             label={
               <Box sx={{ display: 'flex', alignItems: 'center' }}>

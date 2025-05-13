@@ -10,26 +10,95 @@ import NotFound from "@/pages/not-found";
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: '#2563eb',
+      light: '#60a5fa',
+      dark: '#1e40af',
+      contrastText: '#ffffff',
     },
     secondary: {
-      main: '#9c27b0',
+      main: '#6b21a8',
+      light: '#a855f7',
+      dark: '#4c1d95',
+      contrastText: '#ffffff',
     },
     success: {
-      main: '#2e7d32',
+      main: '#16a34a',
+      light: '#34d399',
+      dark: '#166534',
     },
     error: {
-      main: '#c62828',
+      main: '#dc2626',
+      light: '#f87171',
+      dark: '#991b1b',
     },
     warning: {
-      main: '#f57f17',
+      main: '#ea580c',
+      light: '#fb923c',
+      dark: '#9a3412',
     },
     info: {
-      main: '#1565c0',
+      main: '#0284c7',
+      light: '#38bdf8',
+      dark: '#0c4a6e',
     },
+    background: {
+      default: '#f8fafc',
+      paper: '#ffffff',
+    },
+    divider: 'rgba(0, 0, 0, 0.1)',
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    h1: {
+      fontWeight: 700,
+    },
+    h2: {
+      fontWeight: 700,
+    },
+    h3: {
+      fontWeight: 600,
+    },
+    h4: {
+      fontWeight: 600,
+    },
+    h5: {
+      fontWeight: 500,
+    },
+    h6: {
+      fontWeight: 500,
+    },
+  },
+  shape: {
+    borderRadius: 8,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 500,
+          boxShadow: 'none',
+          ':hover': {
+            boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+          },
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.1)',
+          borderRadius: 12,
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+        },
+      },
+    },
   },
 });
 

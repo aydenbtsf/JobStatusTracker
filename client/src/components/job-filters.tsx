@@ -1,12 +1,22 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Card, CardContent } from "@/components/ui/card";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import {
+  Box,
+  TextField,
+  MenuItem,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  Paper,
+  Typography,
+  FormHelperText,
+  styled
+} from "@mui/material";
+import { FilterAlt } from "lucide-react";
 
 interface JobFiltersProps {
   onFilterChange: (filters: {
@@ -26,12 +36,17 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  marginBottom: theme.spacing(3),
+}));
+
 export function JobFilters({ onFilterChange }: JobFiltersProps) {
-  const form = useForm<FormValues>({
+  const { control, handleSubmit } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: " ",
-      status: " ",
+      type: "",
+      status: "",
       dateFrom: "",
       dateTo: "",
     },
@@ -42,85 +57,88 @@ export function JobFilters({ onFilterChange }: JobFiltersProps) {
   };
 
   return (
-    <Card className="mt-6 mb-8">
-      <CardContent className="p-4">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
-            <FormField
-              control={form.control}
+    <StyledPaper elevation={0} variant="outlined">
+      <Typography variant="subtitle1" fontWeight={500} sx={{ mb: 2 }}>
+        Filter Jobs
+      </Typography>
+      
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Controller
               name="type"
+              control={control}
               render={({ field }) => (
-                <FormItem className="w-full md:w-1/4">
-                  <FormLabel>Job Type</FormLabel>
+                <FormControl fullWidth size="small">
+                  <InputLabel id="job-type-label">Job Type</InputLabel>
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    {...field}
+                    labelId="job-type-label"
+                    label="Job Type"
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Types" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value=" ">All Types</SelectItem>
-                      <SelectItem value="fetchTerrain">Fetch Terrain</SelectItem>
-                      <SelectItem value="weatherForecast">Weather Forecast</SelectItem>
-                      <SelectItem value="tideForecast">Tide Forecast</SelectItem>
-                      <SelectItem value="waveForecast">Wave Forecast</SelectItem>
-                    </SelectContent>
+                    <MenuItem value="">All Types</MenuItem>
+                    <MenuItem value="fetchTerrain">Fetch Terrain</MenuItem>
+                    <MenuItem value="weatherForecast">Weather Forecast</MenuItem>
+                    <MenuItem value="tideForecast">Tide Forecast</MenuItem>
+                    <MenuItem value="waveForecast">Wave Forecast</MenuItem>
                   </Select>
-                </FormItem>
+                </FormControl>
               )}
             />
-            
-            <FormField
-              control={form.control}
+          </Grid>
+          
+          <Grid item xs={12} sm={6} md={3}>
+            <Controller
               name="status"
+              control={control}
               render={({ field }) => (
-                <FormItem className="w-full md:w-1/4">
-                  <FormLabel>Status</FormLabel>
+                <FormControl fullWidth size="small">
+                  <InputLabel id="status-label">Status</InputLabel>
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    {...field}
+                    labelId="status-label"
+                    label="Status"
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Statuses" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value=" ">All Statuses</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="processing">Processing</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="failed">Failed</SelectItem>
-                    </SelectContent>
+                    <MenuItem value="">All Statuses</MenuItem>
+                    <MenuItem value="pending">Pending</MenuItem>
+                    <MenuItem value="processing">Processing</MenuItem>
+                    <MenuItem value="completed">Completed</MenuItem>
+                    <MenuItem value="failed">Failed</MenuItem>
                   </Select>
-                </FormItem>
+                </FormControl>
               )}
             />
-            
-            <FormField
-              control={form.control}
+          </Grid>
+          
+          <Grid item xs={12} sm={6} md={3}>
+            <Controller
               name="dateFrom"
+              control={control}
               render={({ field }) => (
-                <FormItem className="w-full md:w-1/4">
-                  <FormLabel>Date From</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                </FormItem>
+                <TextField
+                  {...field}
+                  fullWidth
+                  size="small"
+                  label="Date From"
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                />
               )}
             />
-            
-            <div className="flex items-end w-full md:w-1/4">
-              <Button type="submit" className="w-full">
-                Apply Filters
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          </Grid>
+          
+          <Grid item xs={12} sm={6} md={3} sx={{ display: 'flex', alignItems: 'flex-end' }}>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              fullWidth
+              startIcon={<FilterAlt size={16} />}
+            >
+              Apply Filters
+            </Button>
+          </Grid>
+        </Grid>
+      </form>
+    </StyledPaper>
   );
 }
