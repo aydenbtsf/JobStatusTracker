@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  email     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+model Job {
+  id               String    @id
+  type             String
+  status           String
+  errorMessage     String?   @map("error_message")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @default(now()) @map("updated_at")
+  args             Json
+  waveForecastData Json?     @map("wave_forecast_data")
+  
+  // Relations
+  triggeredBy      JobTrigger[] @relation("TriggeredBy")
+  triggerFor       JobTrigger[] @relation("TriggerFor")
+
+  @@map("jobs")
+}
+
+model JobTrigger {
+  id         Int    @id @default(autoincrement())
+  jobId      String @map("job_id")
+  triggerId  String @map("trigger_id")
+  
+  // Relations
+  job        Job    @relation("TriggeredBy", fields: [jobId], references: [id], onDelete: Cascade)
+  trigger    Job    @relation("TriggerFor", fields: [triggerId], references: [id], onDelete: Cascade)
+
+  @@map("job_triggers")
+}
