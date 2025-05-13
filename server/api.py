@@ -191,19 +191,38 @@ async def delete_job(job_id: str):
     
     return {"message": "Job deleted successfully"}
 
-# Serve static files from client build (for production)
+# Root directory of the project
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+client_dir = os.path.join(root_dir, "client")
+redirect_html = os.path.join(root_dir, "redirect.html")
+
+# For root path - serve the redirect HTML
+@app.get("/", include_in_schema=False)
+async def root():
+    if os.path.exists(redirect_html):
+        return FileResponse(redirect_html)
+    else:
+        return {
+            "message": "Job Tracking API is running",
+            "documentation": "/docs",
+            "endpoints": [
+                {"method": "GET", "path": "/api/jobs", "description": "Get all jobs (with optional filters)"},
+                {"method": "GET", "path": "/api/jobs/{job_id}", "description": "Get a specific job by ID"},
+                {"method": "POST", "path": "/api/jobs", "description": "Create a new job"},
+                {"method": "POST", "path": "/api/jobs/{job_id}/retry", "description": "Retry a failed job"},
+                {"method": "DELETE", "path": "/api/jobs/{job_id}", "description": "Delete a job"}
+            ],
+            "frontend_url": "http://localhost:5000"
+        }
+
+# Handle other paths
 @app.get("/{full_path:path}", include_in_schema=False)
 async def serve_spa(full_path: str):
-    # In production, this should serve the built React app
-    # For development, the React app is served by Vite separately
-    if os.environ.get("ENVIRONMENT") == "production":
-        file_path = f"../dist/public/{full_path}"
-        if os.path.exists(file_path):
-            return FileResponse(file_path)
-        return FileResponse("../dist/public/index.html")
-    
-    # In development, return an error message
-    return {"message": "API server running in development mode. Frontend is served separately by Vite."}
+    if full_path.startswith("docs") or full_path.startswith("redoc") or full_path.startswith("openapi.json"):
+        return None  # Let FastAPI handle these routes
+    elif full_path == "redirect.html" and os.path.exists(redirect_html):
+        return FileResponse(redirect_html)
+    return {"message": "Not found. API endpoints are available at /api/jobs", "documentation_url": "/docs"}
 
 if __name__ == "__main__":
     # Running directly (not through Express)
