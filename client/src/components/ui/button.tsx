@@ -1,27 +1,40 @@
 import * as React from "react";
 import { Button as MuiButton, ButtonProps as MuiButtonProps, IconButton } from "@mui/material";
 
-export interface ButtonProps extends MuiButtonProps {
+// Extended ButtonProps that includes shadcn-specific variants and sizes
+export interface ButtonProps extends Omit<MuiButtonProps, 'variant' | 'size'> {
   asChild?: boolean;
+  variant?: "text" | "contained" | "outlined" | "ghost" | "outline";
+  size?: "small" | "medium" | "large" | "sm" | "lg" | "icon";
 }
 
-// Button component that supports both standard Material UI variants
-// as well as shadcn-style variants like 'ghost' and 'outline'
+// Button component that supports both Material UI and shadcn variants
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ children, asChild, variant = "contained", size = "medium", ...props }, ref) => {
     // Map shadcn variants to Material UI variants
-    let muiVariant = variant;
-    if (variant === 'ghost') muiVariant = 'text';
-    if (variant === 'outline') muiVariant = 'outlined';
+    let muiVariant: "text" | "contained" | "outlined" | undefined = "contained";
+    
+    if (variant === "text" || variant === "ghost") {
+      muiVariant = "text";
+    } else if (variant === "outlined" || variant === "outline") {
+      muiVariant = "outlined";
+    } else if (variant === "contained") {
+      muiVariant = "contained";
+    }
 
     // Map shadcn sizes to Material UI sizes
-    let muiSize = size;
-    if (size === 'sm') muiSize = 'small';
-    if (size === 'lg') muiSize = 'large';
-    if (size === 'icon') {
-      // Special case for icon buttons
+    let muiSize: "small" | "medium" | "large" | undefined = "medium";
+    
+    if (size === "small" || size === "sm") {
+      muiSize = "small";
+    } else if (size === "large" || size === "lg") {
+      muiSize = "large";
+    }
+
+    // Special case for icon buttons
+    if (size === "icon") {
       return (
-        <IconButton ref={ref} size={muiSize === 'medium' ? 'medium' : 'small'} {...props}>
+        <IconButton ref={ref as any} size="medium" {...props}>
           {children}
         </IconButton>
       );
@@ -39,8 +52,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <MuiButton 
         ref={ref} 
-        variant={muiVariant as "text" | "contained" | "outlined" | undefined} 
-        size={muiSize as "small" | "medium" | "large" | undefined} 
+        variant={muiVariant}
+        size={muiSize}
         {...props}
       >
         {children}
