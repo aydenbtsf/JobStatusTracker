@@ -1,8 +1,19 @@
-import { Job, JobStatus, JobType } from "@shared/schema";
+import { JobStatus, JobType } from "@shared/schema";
+
+// Types matching the actual API response format (snake_case)
+export interface Job {
+  id: string;
+  type: JobType;
+  status: JobStatus;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+  args: Record<string, any>;
+  wave_forecast_data: WaveForecastData | null;
+}
 
 export interface JobWithTriggers extends Job {
   triggers: Job[];
-  wave_forecast_data?: WaveForecastData;
 }
 
 export interface WaveForecastData {

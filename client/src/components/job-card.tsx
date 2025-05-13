@@ -40,7 +40,7 @@ export function JobCard({ job }: JobCardProps) {
             Type: <strong>{job.type}</strong>
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Created: <strong>{formatDate(job.createdAt)}</strong>
+            Created: <strong>{formatDate(job.created_at)}</strong>
           </Typography>
         </Stack>
         
