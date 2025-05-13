@@ -30,8 +30,8 @@ export function JobFilters({ onFilterChange }: JobFiltersProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: "",
-      status: "",
+      type: " ",
+      status: " ",
       dateFrom: "",
       dateTo: "",
     },
@@ -62,7 +62,7 @@ export function JobFilters({ onFilterChange }: JobFiltersProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">All Types</SelectItem>
+                      <SelectItem value=" ">All Types</SelectItem>
                       <SelectItem value="fetchTerrain">Fetch Terrain</SelectItem>
                       <SelectItem value="weatherForecast">Weather Forecast</SelectItem>
                       <SelectItem value="tideForecast">Tide Forecast</SelectItem>
@@ -89,7 +89,7 @@ export function JobFilters({ onFilterChange }: JobFiltersProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">All Statuses</SelectItem>
+                      <SelectItem value=" ">All Statuses</SelectItem>
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="processing">Processing</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>

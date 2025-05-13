@@ -13,12 +13,18 @@ import { JobWithTriggers } from "@/lib/types";
 import { Search, Menu, Bell, Plus } from "lucide-react";
 import { JobStatus } from "@shared/schema";
 
+interface StatusCount {
+  status: "all" | JobStatus;
+  count: number;
+  label: string;
+}
+
 const statusCounts = [
-  { status: "all", count: 0, label: "All Jobs" },
-  { status: "pending", count: 0, label: "Pending" },
-  { status: "processing", count: 0, label: "Processing" },
-  { status: "completed", count: 0, label: "Completed" },
-  { status: "failed", count: 0, label: "Failed" },
+  { status: "all" as const, count: 0, label: "All Jobs" },
+  { status: "pending" as JobStatus, count: 0, label: "Pending" },
+  { status: "processing" as JobStatus, count: 0, label: "Processing" },
+  { status: "completed" as JobStatus, count: 0, label: "Completed" },
+  { status: "failed" as JobStatus, count: 0, label: "Failed" },
 ];
 
 export default function Dashboard() {
@@ -41,7 +47,7 @@ export default function Dashboard() {
   const { data, isLoading, error } = useQuery<JobWithTriggers[]>({
     queryKey: ['/api/jobs', filters],
     queryFn: async ({ queryKey }) => {
-      const [_, appliedFilters] = queryKey;
+      const [_endpoint, appliedFilters] = queryKey as [string, typeof filters];
       const filterParams = new URLSearchParams();
       
       if (appliedFilters.type) filterParams.append('type', appliedFilters.type);
@@ -50,7 +56,8 @@ export default function Dashboard() {
       if (appliedFilters.dateTo) filterParams.append('dateTo', appliedFilters.dateTo);
       
       const queryString = filterParams.toString() ? `?${filterParams.toString()}` : '';
-      const response = await fetch(`/api/jobs${queryString}`, {
+      const fullUrl = `http://localhost:8000/api/jobs${queryString}`;
+      const response = await fetch(fullUrl, {
         credentials: 'include'
       });
       
@@ -72,7 +79,7 @@ export default function Dashboard() {
       ...item,
       count: data?.filter(job => job.status === item.status).length || 0
     };
-  });
+  }) as StatusCount[];
   
   const handleFilterChange = (newFilters: {
     type?: string;
