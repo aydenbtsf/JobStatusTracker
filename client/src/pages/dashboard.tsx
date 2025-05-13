@@ -392,7 +392,17 @@ export default function Dashboard() {
                             {job.id}
                           </TableCell>
                           <TableCell>
-                            {job.pipeline_id}
+                            <Button
+                              variant="text"
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLocation(`/pipeline/${job.pipeline_id}`);
+                              }}
+                              sx={{ textTransform: 'none', p: 0 }}
+                            >
+                              {job.pipeline_id}
+                            </Button>
                           </TableCell>
                           <TableCell>{job.type}</TableCell>
                           <TableCell>
