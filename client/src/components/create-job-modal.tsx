@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { CreateJobPayload } from "@/lib/types";
+import { CreateJobPayload, Pipeline } from "@/lib/types";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { JobType } from "@shared/schema";
+import { useQuery } from "@tanstack/react-query";
 
 interface CreateJobModalProps {
   open: boolean;
@@ -21,6 +22,7 @@ interface CreateJobModalProps {
 
 const formSchema = z.object({
   type: z.enum(["fetchTerrain", "weatherForecast", "tideForecast", "waveForecast"] as const),
+  pipeline_id: z.string().min(1, "Pipeline is required"),
   args: z.string().min(2, "Arguments must be valid JSON").transform((val) => {
     try {
       return JSON.parse(val);
@@ -34,10 +36,22 @@ const formSchema = z.object({
 export function CreateJobModal({ open, onOpenChange }: CreateJobModalProps) {
   const { toast } = useToast();
   
+  // Fetch available pipelines
+  const { data: pipelines, isLoading: isPipelinesLoading } = useQuery<Pipeline[]>({
+    queryKey: ['/api/pipelines'],
+    queryFn: async () => {
+      const res = await fetch('/api/pipelines', { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch pipelines');
+      return res.json();
+    },
+    enabled: open, // Only fetch when modal is open
+  });
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       type: undefined,
+      pipeline_id: "",
       args: '{\n  "location": "San Francisco Bay"\n}',
       triggerIds: "",
     },
@@ -47,8 +61,9 @@ export function CreateJobModal({ open, onOpenChange }: CreateJobModalProps) {
     try {
       const payload: CreateJobPayload = {
         type: values.type,
+        pipeline_id: values.pipeline_id,
         args: values.args,
-        triggerIds: values.triggerIds.length > 0 ? values.triggerIds : undefined,
+        trigger_ids: values.triggerIds.length > 0 ? values.triggerIds : undefined,
       };
       
       await apiRequest("POST", "/api/jobs", payload);
@@ -99,6 +114,36 @@ export function CreateJobModal({ open, onOpenChange }: CreateJobModalProps) {
                       <SelectItem value="weatherForecast">Weather Forecast</SelectItem>
                       <SelectItem value="tideForecast">Tide Forecast</SelectItem>
                       <SelectItem value="waveForecast">Wave Forecast</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="pipeline_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pipeline</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={isPipelinesLoading ? "Loading pipelines..." : "Select a pipeline"} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {pipelines?.map((pipeline) => (
+                        <SelectItem key={pipeline.id} value={pipeline.id}>
+                          {pipeline.name}
+                        </SelectItem>
+                      ))}
+                      {pipelines?.length === 0 && (
+                        <SelectItem disabled value="none">
+                          No pipelines available
+                        </SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
