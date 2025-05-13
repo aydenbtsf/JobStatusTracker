@@ -285,6 +285,7 @@ export default function Dashboard() {
                       pipelines.map((pipeline) => (
                         <TableRow 
                           key={pipeline.id}
+                          onClick={() => setLocation(`/pipeline/${pipeline.id}`)}
                           sx={{ 
                             '&:last-child td, &:last-child th': { border: 0 },
                             '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)', cursor: 'pointer' }
