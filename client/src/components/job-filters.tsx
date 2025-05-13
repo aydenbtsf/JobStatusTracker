@@ -16,7 +16,7 @@ import {
   FormHelperText,
   styled
 } from "@mui/material";
-import { FilterAlt } from "lucide-react";
+import { Filter } from "lucide-react";
 
 interface JobFiltersProps {
   onFilterChange: (filters: {
@@ -63,8 +63,8 @@ export function JobFilters({ onFilterChange }: JobFiltersProps) {
       </Typography>
       
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
+          <Box>
             <Controller
               name="type"
               control={control}
@@ -85,9 +85,9 @@ export function JobFilters({ onFilterChange }: JobFiltersProps) {
                 </FormControl>
               )}
             />
-          </Grid>
+          </Box>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Box>
             <Controller
               name="status"
               control={control}
@@ -108,9 +108,9 @@ export function JobFilters({ onFilterChange }: JobFiltersProps) {
                 </FormControl>
               )}
             />
-          </Grid>
+          </Box>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Box>
             <Controller
               name="dateFrom"
               control={control}
@@ -125,19 +125,19 @@ export function JobFilters({ onFilterChange }: JobFiltersProps) {
                 />
               )}
             />
-          </Grid>
+          </Box>
           
-          <Grid item xs={12} sm={6} md={3} sx={{ display: 'flex', alignItems: 'flex-end' }}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
             <Button 
               type="submit" 
               variant="contained" 
               fullWidth
-              startIcon={<FilterAlt size={16} />}
+              startIcon={<Filter size={16} />}
             >
               Apply Filters
             </Button>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </form>
     </StyledPaper>
   );
