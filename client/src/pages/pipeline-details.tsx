@@ -40,6 +40,7 @@ import {
 import { Pipeline, JobWithTriggers } from "@/lib/types";
 import { getStatusColor, formatFullDate } from "@/lib/utils";
 import { prettyJSON } from "@/lib/utils";
+import { JobTimeline } from "../components/JobTimeline";
 
 export default function PipelineDetailsPage() {
   const [, setLocation] = useLocation();
@@ -362,6 +363,24 @@ export default function PipelineDetailsPage() {
                 </Grid>
               </Grid>
             </Box>
+            
+            {/* Job Timeline */}
+            <Paper
+              sx={{
+                mb: 4,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+                overflow: 'hidden'
+              }}
+            >
+              <Box sx={{ p: 3, borderBottom: '1px solid rgba(0, 0, 0, 0.08)' }}>
+                <Typography variant="h6" fontWeight="medium">
+                  Job Timeline
+                </Typography>
+              </Box>
+              <Box sx={{ p: 2 }}>
+                <JobTimeline jobs={jobs} isLoading={isJobsLoading} />
+              </Box>
+            </Paper>
             
             {/* Jobs Table */}
             <Paper
