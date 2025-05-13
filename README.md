@@ -13,17 +13,19 @@ This application allows you to:
 
 ## System Architecture
 
-The application is built with two independent components:
+The application is built with two completely independent components:
 
 1. **FastAPI Backend** - Handles data storage and processing logic
    - REST API endpoints for job management
    - In-memory database for job storage
    - Validation using Pydantic models
+   - No TypeScript dependencies - pure Python implementation
 
 2. **React Frontend** - Provides the user interface
    - Modern UI components with shadcn/ui
    - Responsive design for all device sizes
    - State management with React Query
+   - TypeScript for type safety
 
 ## Running the Application
 
