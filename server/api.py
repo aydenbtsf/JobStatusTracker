@@ -196,11 +196,18 @@ root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 client_dir = os.path.join(root_dir, "client")
 redirect_html = os.path.join(root_dir, "redirect.html")
 
-# For root path - serve the redirect HTML
+# Set up static files
+static_dir = os.path.join(client_dir, "public")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+# For root path - serve the client HTML
+@app.get("/dashboard", include_in_schema=False)
 @app.get("/", include_in_schema=False)
 async def root():
-    if os.path.exists(redirect_html):
-        return FileResponse(redirect_html)
+    index_html = os.path.join(static_dir, "index.html")
+    if os.path.exists(index_html):
+        return FileResponse(index_html)
     else:
         return {
             "message": "Job Tracking API is running",
@@ -220,8 +227,19 @@ async def root():
 async def serve_spa(full_path: str):
     if full_path.startswith("docs") or full_path.startswith("redoc") or full_path.startswith("openapi.json"):
         return None  # Let FastAPI handle these routes
-    elif full_path == "redirect.html" and os.path.exists(redirect_html):
-        return FileResponse(redirect_html)
+    elif full_path.startswith("static/"):
+        # This should be handled by the static files mount
+        return None
+    elif full_path == "favicon.ico":
+        favicon_path = os.path.join(static_dir, "favicon.ico")
+        if os.path.exists(favicon_path):
+            return FileResponse(favicon_path)
+    
+    # For any other path, serve the main HTML file (SPA approach)
+    index_html = os.path.join(static_dir, "index.html")
+    if os.path.exists(index_html):
+        return FileResponse(index_html)
+    
     return {"message": "Not found. API endpoints are available at /api/jobs", "documentation_url": "/docs"}
 
 if __name__ == "__main__":

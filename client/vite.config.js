@@ -6,7 +6,6 @@ import { resolve } from 'path';
 export default ({ mode }) => {
   // Get the Replit domain from the environment
   const env = loadEnv(mode, process.cwd(), '');
-  const replitDomain = '5ed1e1d0-97ef-4aad-982a-cd7dde3397e5-00-3ue6xnv29wn7b.janeway.replit.dev';
   
   return defineConfig({
     plugins: [react()],
@@ -27,16 +26,20 @@ export default ({ mode }) => {
         '/api': {
           target: 'http://localhost:8000',
           changeOrigin: true,
+          secure: false,
         }
       },
-      fs: {
-        strict: false,
-        allow: ['.']
-      },
-      allowedHosts: [
-        'localhost',
-        '5ed1e1d0-97ef-4aad-982a-cd7dde3397e5-00-3ue6xnv29wn7b.janeway.replit.dev'
-      ]
+    },
+    build: {
+      outDir: 'dist',
+      emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom', '@mui/material'],
+          }
+        }
+      }
     },
     resolve: {
       alias: {
@@ -45,10 +48,5 @@ export default ({ mode }) => {
         '@assets': resolve(__dirname, '..', 'attached_assets'),
       },
     },
-    // Explicitly allow the Replit domain
-    base: './',
-    define: {
-      __ALLOWED_HOST__: JSON.stringify(replitDomain)
-    }
   });
 }
