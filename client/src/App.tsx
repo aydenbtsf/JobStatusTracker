@@ -55,14 +55,20 @@ function App() {
   useEffect(() => {
     async function fetchJobs() {
       try {
+        console.log("Fetching jobs...");
         const response = await fetch("/api/jobs");
+        console.log("Response status:", response.status);
+        
         if (!response.ok) {
           throw new Error("Failed to fetch jobs");
         }
+        
         const data = await response.json();
+        console.log("Jobs data received:", data.length);
         setJobs(data);
         setLoading(false);
       } catch (err: any) {
+        console.error("Error fetching jobs:", err);
         setError(err);
         setLoading(false);
       }
@@ -71,80 +77,43 @@ function App() {
     fetchJobs();
   }, []);
 
+  console.log("Rendering app, loading:", loading, "error:", error, "jobs:", jobs.length);
+  
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Job Dashboard
-        </Typography>
-        
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Alert 
-            severity="error" 
-            action={
-              <Button 
-                color="inherit" 
-                size="small" 
-                onClick={() => window.location.reload()}
-              >
-                Retry
-              </Button>
-            }
-          >
-            Failed to load jobs: {error.message}
-          </Alert>
-        ) : (
-          <Box>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              {jobs.length} jobs found
-            </Typography>
-            
-            {jobs.map(job => (
-              <Card key={job.id} sx={{ mb: 2 }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                    <Typography variant="h6">{job.id}</Typography>
-                    <Chip 
-                      label={job.status} 
-                      color={getStatusColor(job.status)}
-                      size="small" 
-                    />
-                  </Box>
-                  
-                  <Typography variant="body2" color="text.secondary">
-                    Type: <strong>{job.type}</strong>
-                  </Typography>
-                  
-                  <Typography variant="body2" color="text.secondary">
-                    Created: <strong>{new Date(job.created_at).toLocaleString()}</strong>
-                  </Typography>
-                  
-                  <Divider sx={{ my: 2 }} />
-                  
-                  <Typography variant="body2" fontWeight="bold">
-                    Arguments:
-                  </Typography>
-                  <Box component="pre" sx={{ 
-                    bgcolor: 'background.paper', 
-                    p: 1,
-                    borderRadius: 1, 
-                    overflow: 'auto',
-                    fontSize: '0.75rem'
-                  }}>
-                    {JSON.stringify(job.args, null, 2)}
-                  </Box>
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
-        )}
-      </Container>
-    </ThemeProvider>
+    <div style={{padding: '20px'}}>
+      <h1>Job Dashboard</h1>
+      {loading ? (
+        <div style={{textAlign: 'center', padding: '40px'}}>
+          <p>Loading...</p>
+        </div>
+      ) : error ? (
+        <div style={{color: 'red', padding: '20px', border: '1px solid red'}}>
+          <p>Error: {error.message}</p>
+          <button onClick={() => window.location.reload()}>Retry</button>
+        </div>
+      ) : (
+        <div>
+          <p>{jobs.length} jobs found</p>
+          {jobs.map(job => (
+            <div key={job.id} className="job-card">
+              <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                <h3>{job.id}</h3>
+                <span className={`status-badge status-${job.status}`}>
+                  {job.status}
+                </span>
+              </div>
+              <p>Type: <strong>{job.type}</strong></p>
+              <p>Created: <strong>{new Date(job.created_at).toLocaleString()}</strong></p>
+              <hr />
+              <p><strong>Arguments:</strong></p>
+              <pre>
+                {JSON.stringify(job.args, null, 2)}
+              </pre>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
