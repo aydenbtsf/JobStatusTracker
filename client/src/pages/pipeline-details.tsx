@@ -107,7 +107,7 @@ export default function PipelineDetailsPage() {
     refetchJobs();
   };
   
-  const getStatusChip = (status: string) => {
+  const getStatusChip = (status: string): JSX.Element => {
     let color: "default" | "primary" | "secondary" | "success" | "error" | "warning" | "info";
     
     switch (status) {
