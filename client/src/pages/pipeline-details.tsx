@@ -374,7 +374,7 @@ export default function PipelineDetailsPage() {
             >
               <Box sx={{ p: 3, borderBottom: '1px solid rgba(0, 0, 0, 0.08)' }}>
                 <Typography variant="h6" fontWeight="medium">
-                  Job Timeline
+                  Job Processing Timeline
                 </Typography>
               </Box>
               <Box sx={{ p: 2 }}>
