@@ -1,19 +1,87 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { JobWithTriggers } from "@/lib/types";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { formatDate, formatFullDate, getStatusVariant, prettyJSON } from "@/lib/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 
+// Material UI imports
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardActions,
+  Typography,
+  Box,
+  Chip,
+  IconButton,
+  Collapse,
+  Grid,
+  Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  styled
+} from "@mui/material";
+
 interface JobCardProps {
   job: JobWithTriggers;
 }
+
+// Styled components
+const StyledCard = styled(Card)(({ theme }) => ({
+  marginBottom: theme.spacing(2),
+  transition: 'box-shadow 0.3s ease-in-out',
+  '&:hover': {
+    boxShadow: theme.shadows[4],
+  },
+}));
+
+const CardHeaderWrapper = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  width: '100%',
+}));
+
+const JobTypeAndStatus = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+}));
+
+const JobDateAndExpand = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+}));
+
+const CodeBlock = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(1.5),
+  backgroundColor: theme.palette.grey[100],
+  borderRadius: theme.shape.borderRadius,
+  overflowX: 'auto',
+  fontFamily: 'monospace',
+  fontSize: '0.875rem',
+  maxHeight: '120px',
+  overflowY: 'auto',
+}));
+
+// Helper function to get MUI color from job status
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'pending': return 'warning';
+    case 'processing': return 'info';
+    case 'completed': return 'success';
+    case 'failed': return 'error';
+    default: return 'default';
+  }
+};
 
 export function JobCard({ job }: JobCardProps) {
   const [expanded, setExpanded] = useState(false);
@@ -37,128 +105,152 @@ export function JobCard({ job }: JobCardProps) {
   };
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="px-4 py-5 sm:px-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <h3 className="text-lg font-medium leading-6 text-gray-900">{job.type}</h3>
-            <Badge variant={getStatusVariant(job.status)} className="ml-3">
-              {job.status}
-            </Badge>
-          </div>
-          <div className="flex space-x-2">
-            <span className="text-sm text-gray-500">{formatDate(job.createdAt)}</span>
-            <button
-              className="p-1 text-gray-400 hover:text-gray-500"
-              onClick={() => setExpanded(!expanded)}
-            >
-              {expanded ? (
-                <ChevronUp className="w-5 h-5" />
-              ) : (
-                <ChevronDown className="w-5 h-5" />
-              )}
-            </button>
-          </div>
-        </div>
-        <p className="mt-1 text-sm text-gray-500">{job.id}</p>
-      </CardHeader>
+    <StyledCard>
+      <CardHeader
+        disableTypography
+        action={
+          <IconButton 
+            onClick={() => setExpanded(!expanded)}
+            aria-expanded={expanded}
+            aria-label="show more"
+            size="small"
+          >
+            {expanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          </IconButton>
+        }
+        title={
+          <CardHeaderWrapper>
+            <JobTypeAndStatus>
+              <Typography variant="h6" component="h3" sx={{ fontWeight: 500 }}>
+                {job.type}
+              </Typography>
+              <Chip 
+                label={job.status}
+                size="small"
+                color={getStatusColor(job.status)}
+                sx={{ ml: 1.5, textTransform: 'capitalize' }}
+              />
+            </JobTypeAndStatus>
+            <JobDateAndExpand>
+              <Typography variant="body2" color="text.secondary">
+                {formatDate(job.createdAt)}
+              </Typography>
+            </JobDateAndExpand>
+          </CardHeaderWrapper>
+        }
+        subheader={
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            {job.id}
+          </Typography>
+        }
+        sx={{ pb: 0 }}
+      />
       
-      {expanded && (
-        <CardContent className="px-4 py-5 border-t border-gray-200 sm:px-6 bg-gray-50">
-          <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Created At</dt>
-              <dd className="mt-1 text-sm text-gray-900">{formatFullDate(job.createdAt)}</dd>
-            </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Updated At</dt>
-              <dd className="mt-1 text-sm text-gray-900">{formatFullDate(job.updatedAt)}</dd>
-            </div>
+      <Collapse in={expanded} timeout="auto" unmountOnExit>
+        <CardContent sx={{ pt: 2, pb: 1, bgcolor: 'background.paper' }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">Created At</Typography>
+              <Typography variant="body2">{formatFullDate(job.createdAt)}</Typography>
+            </Box>
+            
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">Updated At</Typography>
+              <Typography variant="body2">{formatFullDate(job.updatedAt)}</Typography>
+            </Box>
             
             {job.errorMessage && (
-              <div className="sm:col-span-2">
-                <dt className="text-sm font-medium text-gray-500">Error Message</dt>
-                <dd className="mt-1 text-sm text-red-600">{job.errorMessage}</dd>
-              </div>
+              <Box sx={{ gridColumn: { xs: '1', sm: '1 / span 2' } }}>
+                <Typography variant="subtitle2" color="text.secondary">Error Message</Typography>
+                <Typography variant="body2" color="error.main">{job.errorMessage}</Typography>
+              </Box>
             )}
             
-            <div className="sm:col-span-2">
-              <dt className="text-sm font-medium text-gray-500">Arguments</dt>
-              <dd className="mt-1 text-sm text-gray-900">
-                <div className="p-2 overflow-auto font-mono bg-gray-100 rounded-md" style={{ maxHeight: "100px" }}>
-                  <pre>{prettyJSON(job.args)}</pre>
-                </div>
-              </dd>
-            </div>
+            <Box sx={{ gridColumn: { xs: '1', sm: '1 / span 2' } }}>
+              <Typography variant="subtitle2" color="text.secondary">Arguments</Typography>
+              <CodeBlock>
+                <pre style={{ margin: 0 }}>{prettyJSON(job.args)}</pre>
+              </CodeBlock>
+            </Box>
             
             {job.triggers && job.triggers.length > 0 && (
-              <div className="sm:col-span-2">
-                <dt className="text-sm font-medium text-gray-500">Triggers</dt>
-                <dd className="mt-1 text-sm text-gray-900">
+              <Box sx={{ gridColumn: { xs: '1', sm: '1 / span 2' } }}>
+                <Typography variant="subtitle2" color="text.secondary">Triggers</Typography>
+                <Box sx={{ mt: 1 }}>
                   {job.triggers.map(trigger => (
-                    <div key={trigger.id} className="flex items-center p-2 mb-2 bg-white border border-gray-200 rounded-md">
-                      <Badge variant={getStatusVariant(trigger.status)}>{trigger.status}</Badge>
-                      <span className="ml-2 font-medium">{trigger.type}</span>
-                      <span className="ml-2 text-gray-500">{trigger.id}</span>
-                    </div>
+                    <Box 
+                      key={trigger.id} 
+                      sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        p: 1.5, 
+                        mb: 1, 
+                        border: '1px solid', 
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                        bgcolor: 'background.paper'
+                      }}
+                    >
+                      <Chip 
+                        label={trigger.status} 
+                        size="small" 
+                        color={getStatusColor(trigger.status)} 
+                      />
+                      <Typography variant="body2" fontWeight={500} sx={{ ml: 1.5 }}>
+                        {trigger.type}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ ml: 1.5 }}>
+                        {trigger.id}
+                      </Typography>
+                    </Box>
                   ))}
-                </dd>
-              </div>
+                </Box>
+              </Box>
             )}
             
             {job.waveForecastData && job.waveForecastData.data && job.waveForecastData.data.length > 0 && (
-              <div className="sm:col-span-2">
-                <dt className="text-sm font-medium text-gray-500">Wave Forecast Data</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  <div className="overflow-hidden border border-gray-200 rounded-md shadow-sm">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Time</th>
-                          <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Height (m)</th>
-                          <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Direction</th>
-                          <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Period (s)</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {job.waveForecastData.data.map((entry, index) => (
-                          <tr key={index}>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{entry.time}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{entry.height}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{entry.direction}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{entry.period}</div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </dd>
-              </div>
+              <Box sx={{ gridColumn: { xs: '1', sm: '1 / span 2' } }}>
+                <Typography variant="subtitle2" color="text.secondary">Wave Forecast Data</Typography>
+                <TableContainer component={Paper} variant="outlined" sx={{ mt: 1 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Time</TableCell>
+                        <TableCell>Height (m)</TableCell>
+                        <TableCell>Direction</TableCell>
+                        <TableCell>Period (s)</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {job.waveForecastData.data.map((entry, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{entry.time}</TableCell>
+                          <TableCell>{entry.height}</TableCell>
+                          <TableCell>{entry.direction}</TableCell>
+                          <TableCell>{entry.period}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
             )}
-          </dl>
+          </Box>
           
-          <div className="flex justify-end mt-6 space-x-3">
-            <Button 
-              variant="outline" 
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 1 }}>
+            <Button
+              variant="outlined"
               onClick={handleRetry}
               disabled={job.status === 'processing' || job.status === 'completed'}
             >
               Retry
             </Button>
-            <Button asChild>
-              <Link href={`/jobs/${job.id}`}>View Full Details</Link>
+            <Button variant="contained" component={Link} href={`/jobs/${job.id}`}>
+              View Full Details
             </Button>
-          </div>
+          </Box>
         </CardContent>
-      )}
-    </Card>
+      </Collapse>
+    </StyledCard>
   );
 }
