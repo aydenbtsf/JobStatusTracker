@@ -2,7 +2,7 @@ import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
 import { Route, Switch } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./pages/dashboard";
 import JobDetailsPage from "./pages/job-details";
 import NotFound from "./pages/not-found";
 import Layout from "./components/Layout";

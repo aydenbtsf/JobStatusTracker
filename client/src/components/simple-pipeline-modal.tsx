@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogTitle, 
@@ -24,6 +24,11 @@ interface SimplePipelineModalProps {
 
 export function SimplePipelineModal({ open, onClose }: SimplePipelineModalProps) {
   console.log("SimplePipelineModal rendered, open state:", open);
+  
+  // Add effect to log when open state changes
+  useEffect(() => {
+    console.log("SimplePipelineModal open state changed to:", open);
+  }, [open]);
   
   // Form state
   const [name, setName] = useState('');

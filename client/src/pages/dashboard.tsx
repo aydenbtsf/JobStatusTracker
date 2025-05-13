@@ -40,6 +40,11 @@ export default function Dashboard() {
   const [location, setLocation] = useLocation();
   const [pipelineModalOpen, setPipelineModalOpen] = useState(false);
   
+  // Debug log for component mount
+  useEffect(() => {
+    console.log("Dashboard component mounted");
+  }, []);
+  
   // Parse query parameters
   const params = new URLSearchParams(location.split('?')[1] || '');
   const filterStatus = params.get('status') as JobStatus | null;
