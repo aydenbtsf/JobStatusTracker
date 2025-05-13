@@ -21,17 +21,22 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Link
+  Link,
+  Tooltip
 } from "@mui/material";
 import { 
   Clock, 
   CheckCircle, 
   AlertCircle,
-  RefreshCw 
+  RefreshCw,
+  Plus,
+  GitBranch
 } from "lucide-react";
+import { CreatePipelineModal } from "@/components/create-pipeline-modal";
 
 export default function Dashboard() {
   const [location, setLocation] = useLocation();
+  const [pipelineModalOpen, setPipelineModalOpen] = useState(false);
   
   // Parse query parameters
   const params = new URLSearchParams(location.split('?')[1] || '');
@@ -198,10 +203,21 @@ export default function Dashboard() {
                 overflow: 'hidden'
               }}
             >
-              <Box sx={{ p: 3, borderBottom: '1px solid rgba(0, 0, 0, 0.08)' }}>
+              <Box sx={{ p: 3, borderBottom: '1px solid rgba(0, 0, 0, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h6" fontWeight="medium">
                   Recent Jobs
                 </Typography>
+                <Tooltip title="Create New Pipeline">
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    startIcon={<GitBranch size={16} />}
+                    onClick={() => setPipelineModalOpen(true)}
+                  >
+                    New Pipeline
+                  </Button>
+                </Tooltip>
               </Box>
               <TableContainer>
                 <Table>
@@ -312,6 +328,12 @@ export default function Dashboard() {
           </>
         )}
       </Container>
+      
+      {/* Pipeline Creation Modal */}
+      <CreatePipelineModal 
+        open={pipelineModalOpen}
+        onClose={() => setPipelineModalOpen(false)}
+      />
     </Box>
   );
 }
