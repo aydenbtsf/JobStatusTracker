@@ -15,8 +15,8 @@ source "$SCRIPT_DIR/venv/bin/activate"
 
 # Install requirements
 echo "Installing requirements..."
-pip install -r "$SCRIPT_DIR/requirements.txt"
+pip install -r "$SCRIPT_DIR/server/requirements.txt"
 
 # Start the server using the full path to uvicorn
 echo "Starting FastAPI server..."
-"$SCRIPT_DIR/venv/bin/uvicorn" server.main:app --reload --host 0.0.0.0 --port 8000 
+"$uvicorn" server.main:app --reload --host 0.0.0.0 --port 8000 
