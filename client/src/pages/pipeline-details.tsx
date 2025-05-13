@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useRoute, useLocation } from "wouter";
+import { useState } from "react";
+import { useParams, Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   Box,
@@ -43,15 +43,8 @@ import { prettyJSON } from "@/lib/utils";
 import { JobTimeline } from "../components/JobTimeline";
 
 export default function PipelineDetailsPage() {
-  const [, setLocation] = useLocation();
-  const [, params] = useRoute<{ id: string }>("/pipeline/:id");
-  
-  // If no params, redirect to dashboard
-  useEffect(() => {
-    if (!params?.id) {
-      setLocation("/");
-    }
-  }, [params, setLocation]);
+  const router = useRouter();
+  const { id } = useParams({ from: '/pipeline/$id' });
   
   // Fetch pipeline details
   const {
@@ -60,22 +53,22 @@ export default function PipelineDetailsPage() {
     error: pipelineError,
     refetch: refetchPipeline
   } = useQuery<Pipeline>({
-    queryKey: ['/api/pipelines', params?.id],
+    queryKey: ['/api/pipelines', id],
     queryFn: async ({ queryKey }) => {
-      const [_endpoint, id] = queryKey as [string, string];
-      if (!id) throw new Error("No pipeline ID provided");
+      const [_endpoint, pipelineId] = queryKey as [string, string];
+      if (!pipelineId) throw new Error("No pipeline ID provided");
       
-      const response = await fetch(`/api/pipelines/${id}`, {
+      const response = await fetch(`/api/pipelines/${pipelineId}`, {
         credentials: 'include'
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch pipeline with ID: ${id}`);
+        throw new Error(`Failed to fetch pipeline with ID: ${pipelineId}`);
       }
       
       return response.json();
     },
-    enabled: !!params?.id
+    enabled: !!id
   });
   
   // Fetch pipeline's jobs
@@ -85,7 +78,7 @@ export default function PipelineDetailsPage() {
     error: jobsError,
     refetch: refetchJobs
   } = useQuery<JobWithTriggers[]>({
-    queryKey: ['/api/jobs', { pipeline_id: params?.id }],
+    queryKey: ['/api/jobs', { pipeline_id: id }],
     queryFn: async ({ queryKey }) => {
       const [_endpoint, filters] = queryKey as [string, { pipeline_id: string }];
       if (!filters.pipeline_id) throw new Error("No pipeline ID provided");
@@ -100,7 +93,7 @@ export default function PipelineDetailsPage() {
       
       return response.json();
     },
-    enabled: !!params?.id
+    enabled: !!id
   });
   
   const handleRefresh = () => {
@@ -145,7 +138,7 @@ export default function PipelineDetailsPage() {
         <Box sx={{ mb: 3 }}>
           <Button
             startIcon={<ArrowLeft size={16} />}
-            onClick={() => setLocation("/")}
+            onClick={() => router.navigate({ to: "/" })}
             variant="text"
             color="inherit"
             sx={{ ml: -1 }}
@@ -211,8 +204,8 @@ export default function PipelineDetailsPage() {
             </Box>
             
             {/* Pipeline Details */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-              <Grid item xs={12} md={7}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
+              <Box sx={{ flex: '1 1 60%', minWidth: '280px' }}>
                 <Paper sx={{ height: '100%', p: 3 }}>
                   <Typography variant="h6" fontWeight="medium" sx={{ mb: 2 }}>
                     Details
@@ -229,44 +222,44 @@ export default function PipelineDetailsPage() {
                     </Box>
                   )}
                   
-                  <Grid container spacing={3}>
-                    <Grid item xs={6}>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                    <Box sx={{ flex: '1 1 45%', minWidth: '120px' }}>
                       <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                         ID
                       </Typography>
                       <Typography variant="body2">
                         {pipeline.id}
                       </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
+                    </Box>
+                    <Box sx={{ flex: '1 1 45%', minWidth: '120px' }}>
                       <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                         Status
                       </Typography>
                       <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
                         {pipeline.status}
                       </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
+                    </Box>
+                    <Box sx={{ flex: '1 1 45%', minWidth: '120px' }}>
                       <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                         Created
                       </Typography>
                       <Typography variant="body2">
                         {formatFullDate(pipeline.created_at)}
                       </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
+                    </Box>
+                    <Box sx={{ flex: '1 1 45%', minWidth: '120px' }}>
                       <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                         Last Updated
                       </Typography>
                       <Typography variant="body2">
                         {formatFullDate(pipeline.updated_at)}
                       </Typography>
-                    </Grid>
-                  </Grid>
+                    </Box>
+                  </Box>
                 </Paper>
-              </Grid>
+              </Box>
               
-              <Grid item xs={12} md={5}>
+              <Box sx={{ flex: '1 1 30%', minWidth: '280px' }}>
                 <Paper sx={{ height: '100%', p: 3 }}>
                   <Typography variant="h6" fontWeight="medium" sx={{ mb: 2 }}>
                     Metadata
@@ -292,13 +285,13 @@ export default function PipelineDetailsPage() {
                     </Typography>
                   )}
                 </Paper>
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
             
             {/* Pipeline Stats */}
             <Box sx={{ mb: 4 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} sm={6} md={3}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                <Box sx={{ flex: '1 1 20%', minWidth: '200px' }}>
                   <Card sx={{ height: '100%' }}>
                     <CardContent>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -312,9 +305,9 @@ export default function PipelineDetailsPage() {
                       </Typography>
                     </CardContent>
                   </Card>
-                </Grid>
+                </Box>
                 
-                <Grid item xs={12} sm={6} md={3}>
+                <Box sx={{ flex: '1 1 20%', minWidth: '200px' }}>
                   <Card sx={{ height: '100%' }}>
                     <CardContent>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -328,9 +321,9 @@ export default function PipelineDetailsPage() {
                       </Typography>
                     </CardContent>
                   </Card>
-                </Grid>
+                </Box>
                 
-                <Grid item xs={12} sm={6} md={3}>
+                <Box sx={{ flex: '1 1 20%', minWidth: '200px' }}>
                   <Card sx={{ height: '100%' }}>
                     <CardContent>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -344,9 +337,9 @@ export default function PipelineDetailsPage() {
                       </Typography>
                     </CardContent>
                   </Card>
-                </Grid>
+                </Box>
                 
-                <Grid item xs={12} sm={6} md={3}>
+                <Box sx={{ flex: '1 1 20%', minWidth: '200px' }}>
                   <Card sx={{ height: '100%' }}>
                     <CardContent>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -360,8 +353,8 @@ export default function PipelineDetailsPage() {
                       </Typography>
                     </CardContent>
                   </Card>
-                </Grid>
-              </Grid>
+                </Box>
+              </Box>
             </Box>
             
             {/* Job Timeline */}
@@ -421,7 +414,7 @@ export default function PipelineDetailsPage() {
                       jobs.map((job) => (
                         <TableRow 
                           key={job.id}
-                          onClick={() => setLocation(`/job/${job.id}`)}
+                          onClick={() => router.navigate({ to: `/job/${job.id}` })}
                           sx={{ 
                             '&:last-child td, &:last-child th': { border: 0 },
                             '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)', cursor: 'pointer' }
@@ -441,31 +434,27 @@ export default function PipelineDetailsPage() {
                               sx={{ textTransform: 'capitalize' }}
                             />
                           </TableCell>
+                          <TableCell>{formatFullDate(job.created_at)}</TableCell>
+                          <TableCell>{formatFullDate(job.updated_at)}</TableCell>
                           <TableCell>
-                            {formatFullDate(job.created_at)}
-                          </TableCell>
-                          <TableCell>
-                            {formatFullDate(job.updated_at)}
-                          </TableCell>
-                          <TableCell sx={{ width: 100 }}>
-                            <Button
-                              variant="text"
-                              size="small"
+                            <IconButton 
+                              size="small" 
+                              color="primary"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setLocation(`/job/${job.id}`);
+                                router.navigate({ to: `/job/${job.id}` });
                               }}
                             >
-                              View
-                            </Button>
+                              <FileText size={16} />
+                            </IconButton>
                           </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
                         <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                          <Typography variant="body1" color="text.secondary">
-                            No jobs found for this pipeline
+                          <Typography variant="body2" color="text.secondary">
+                            No jobs found for this pipeline.
                           </Typography>
                         </TableCell>
                       </TableRow>
@@ -475,11 +464,7 @@ export default function PipelineDetailsPage() {
               </TableContainer>
             </Paper>
           </>
-        ) : (
-          <Alert severity="error">
-            Pipeline not found
-          </Alert>
-        )}
+        ) : null}
       </Container>
     </Box>
   );

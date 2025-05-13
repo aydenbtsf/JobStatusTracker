@@ -3,6 +3,7 @@ import { Outlet } from '@tanstack/react-router'
 
 import Dashboard from '../pages/dashboard'
 import JobDetailsPage from '../pages/job-details'
+import PipelineDetailsPage from '../pages/pipeline-details'
 import NotFound from '../pages/not-found'
 import Layout from '../components/Layout'
 
@@ -29,6 +30,13 @@ const jobDetailsRoute = createRoute({
   component: JobDetailsPage,
 })
 
+// Create a pipeline details route
+const pipelineDetailsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/pipeline/$id',
+  component: PipelineDetailsPage,
+})
+
 // Create a catch-all route for 404s
 const notFoundRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -40,6 +48,7 @@ const notFoundRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   jobDetailsRoute,
+  pipelineDetailsRoute,
   notFoundRoute,
 ])
 
@@ -56,4 +65,4 @@ declare module '@tanstack/react-router' {
   }
 }
 
-export { router, RouterProvider, jobDetailsRoute } 
+export { router, RouterProvider, jobDetailsRoute, pipelineDetailsRoute }

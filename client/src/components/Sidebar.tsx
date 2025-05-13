@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { Link, useRouter } from "@tanstack/react-router";
 import {
   Box,
   Drawer,
@@ -31,14 +31,15 @@ export default function Sidebar() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [open, setOpen] = useState(!isMobile);
-  const [location] = useLocation();
+  const router = useRouter();
+  const currentPath = router.state.location.pathname;
 
   // Close drawer on mobile when location changes
   useEffect(() => {
     if (isMobile) {
       setOpen(false);
     }
-  }, [location, isMobile]);
+  }, [currentPath, isMobile]);
 
   // Update open state when screen size changes
   useEffect(() => {
@@ -84,8 +85,9 @@ export default function Sidebar() {
           <ListItem key={item.text} disablePadding>
             <ListItemButton
               component={Link}
-              href={item.path}
-              selected={location === item.path}
+              to={item.path}
+              preload="intent"
+              selected={currentPath === item.path}
               sx={{
                 "&.Mui-selected": {
                   backgroundColor: "rgba(37, 99, 235, 0.08)",
@@ -103,7 +105,7 @@ export default function Sidebar() {
               <ListItemIcon
                 sx={{
                   minWidth: 40,
-                  color: location === item.path ? "primary.main" : "inherit",
+                  color: currentPath === item.path ? "primary.main" : "inherit",
                 }}
               >
                 {item.icon}
