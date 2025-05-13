@@ -1,7 +1,6 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
-import tailwindcss from '@tailwindcss/vite';
 
 // https://vitejs.dev/config/
 export default ({ mode }) => {
@@ -10,7 +9,7 @@ export default ({ mode }) => {
   const replitDomain = '5ed1e1d0-97ef-4aad-982a-cd7dde3397e5-00-3ue6xnv29wn7b.janeway.replit.dev';
   
   return defineConfig({
-    plugins: [react(), tailwindcss()],
+    plugins: [react()],
     server: {
       host: '0.0.0.0',
       port: 5000,

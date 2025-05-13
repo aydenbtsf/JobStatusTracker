@@ -1,10 +1,10 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx } from "clsx";
 import { format, parseISO } from "date-fns";
 import { JobStatus } from "@shared/schema";
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+// A simple utility for combining class names without tailwind
+export function cn(...classes: string[]) {
+  return clsx(classes);
 }
 
 export function formatDate(date: Date | string): string {
@@ -21,35 +21,37 @@ export function formatFullDate(date: Date | string): string {
   return format(parsedDate, "MMMM dd, yyyy HH:mm:ss");
 }
 
+// Material UI theme colors for different statuses
 export function getStatusColor(status: JobStatus): {
   bgColor: string;
   textColor: string;
-  variant: "default" | "outline" | "secondary" | "destructive";
+  variant: "primary" | "secondary" | "success" | "error" | "warning" | "info";
 } {
   switch (status) {
     case "pending":
-      return { bgColor: "bg-yellow-100", textColor: "text-warning", variant: "outline" };
+      return { bgColor: "#fff9c4", textColor: "#f57f17", variant: "warning" };
     case "processing":
-      return { bgColor: "bg-blue-100", textColor: "text-primary", variant: "secondary" };
+      return { bgColor: "#bbdefb", textColor: "#1565c0", variant: "info" };
     case "completed":
-      return { bgColor: "bg-green-100", textColor: "text-success", variant: "default" };
+      return { bgColor: "#c8e6c9", textColor: "#2e7d32", variant: "success" };
     case "failed":
-      return { bgColor: "bg-red-100", textColor: "text-danger", variant: "destructive" };
+      return { bgColor: "#ffcdd2", textColor: "#c62828", variant: "error" };
     default:
-      return { bgColor: "bg-gray-100", textColor: "text-gray-500", variant: "secondary" };
+      return { bgColor: "#e0e0e0", textColor: "#616161", variant: "secondary" };
   }
 }
 
-export function getStatusVariant(status: JobStatus): "default" | "outline" | "secondary" | "destructive" {
+// Convert job status to Material UI theme color variant
+export function getStatusVariant(status: JobStatus): "primary" | "secondary" | "success" | "error" | "warning" | "info" {
   switch (status) {
     case "pending":
-      return "outline";
+      return "warning";
     case "processing":
-      return "secondary";
+      return "info";
     case "completed":
-      return "default";
+      return "success";
     case "failed":
-      return "destructive";
+      return "error";
     default:
       return "secondary";
   }

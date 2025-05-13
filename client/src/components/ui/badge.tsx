@@ -1,36 +1,90 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
+import * as React from "react";
+import { Chip, ChipProps } from "@mui/material";
+import { styled } from "@mui/material/styles";
 
-import { cn } from "@/lib/utils"
-
-const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-  {
-    variants: {
-      variant: {
-        default:
-          "border-transparent bg-green-100 text-success hover:bg-green-200/80",
-        secondary:
-          "border-transparent bg-blue-100 text-primary hover:bg-blue-200/80",
-        destructive:
-          "border-transparent bg-red-100 text-danger hover:bg-red-200/80",
-        outline: "border-transparent bg-yellow-100 text-warning hover:bg-yellow-200/80",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
-
-export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
-
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
-  )
+export interface BadgeProps extends Omit<ChipProps, 'variant'> {
+  variant?: "primary" | "secondary" | "success" | "error" | "warning" | "info";
+  children?: React.ReactNode;
 }
 
-export { Badge, badgeVariants }
+// Create custom styled Chip components for each variant
+const PrimaryChip = styled(Chip)(({ theme }) => ({
+  backgroundColor: theme.palette.primary.light,
+  color: theme.palette.primary.dark,
+  fontWeight: 500,
+  fontSize: "0.75rem",
+  height: "1.5rem",
+  borderRadius: "1rem",
+}));
+
+const SecondaryChip = styled(Chip)(({ theme }) => ({
+  backgroundColor: theme.palette.secondary.light,
+  color: theme.palette.secondary.dark,
+  fontWeight: 500,
+  fontSize: "0.75rem",
+  height: "1.5rem",
+  borderRadius: "1rem",
+}));
+
+const SuccessChip = styled(Chip)(({ theme }) => ({
+  backgroundColor: theme.palette.success.light,
+  color: theme.palette.success.dark,
+  fontWeight: 500,
+  fontSize: "0.75rem",
+  height: "1.5rem",
+  borderRadius: "1rem",
+}));
+
+const ErrorChip = styled(Chip)(({ theme }) => ({
+  backgroundColor: theme.palette.error.light,
+  color: theme.palette.error.dark,
+  fontWeight: 500,
+  fontSize: "0.75rem",
+  height: "1.5rem",
+  borderRadius: "1rem",
+}));
+
+const WarningChip = styled(Chip)(({ theme }) => ({
+  backgroundColor: theme.palette.warning.light,
+  color: theme.palette.warning.dark,
+  fontWeight: 500,
+  fontSize: "0.75rem",
+  height: "1.5rem",
+  borderRadius: "1rem",
+}));
+
+const InfoChip = styled(Chip)(({ theme }) => ({
+  backgroundColor: theme.palette.info.light,
+  color: theme.palette.info.dark,
+  fontWeight: 500,
+  fontSize: "0.75rem",
+  height: "1.5rem",
+  borderRadius: "1rem",
+}));
+
+const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
+  ({ children, variant = "primary", ...props }, ref) => {
+    // Choose the right component based on variant
+    const ChipComponent = {
+      primary: PrimaryChip,
+      secondary: SecondaryChip,
+      success: SuccessChip,
+      error: ErrorChip,
+      warning: WarningChip,
+      info: InfoChip,
+    }[variant];
+
+    return (
+      <ChipComponent
+        ref={ref}
+        label={children}
+        size="small"
+        {...props}
+      />
+    );
+  }
+);
+
+Badge.displayName = "Badge";
+
+export { Badge };

@@ -1,24 +1,28 @@
-import * as React from "react"
-import * as LabelPrimitive from "@radix-ui/react-label"
-import { cva, type VariantProps } from "class-variance-authority"
+import * as React from "react";
+import { FormLabel, FormLabelProps } from "@mui/material";
+import { styled } from "@mui/material/styles";
 
-import { cn } from "@/lib/utils"
+export interface LabelProps extends FormLabelProps {
+  htmlFor?: string;
+}
 
-const labelVariants = cva(
-  "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-)
+const StyledLabel = styled(FormLabel)({
+  fontSize: "0.875rem",
+  fontWeight: 500,
+  marginBottom: "0.5rem",
+  display: "block",
+});
 
-const Label = React.forwardRef<
-  React.ElementRef<typeof LabelPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
-    VariantProps<typeof labelVariants>
->(({ className, ...props }, ref) => (
-  <LabelPrimitive.Root
-    ref={ref}
-    className={cn(labelVariants(), className)}
-    {...props}
-  />
-))
-Label.displayName = LabelPrimitive.Root.displayName
+const Label = React.forwardRef<HTMLLabelElement, LabelProps>(
+  ({ children, className, ...props }, ref) => {
+    return (
+      <StyledLabel ref={ref} className={className} {...props}>
+        {children}
+      </StyledLabel>
+    );
+  }
+);
 
-export { Label }
+Label.displayName = "Label";
+
+export { Label };
