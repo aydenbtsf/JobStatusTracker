@@ -56,7 +56,7 @@ function getStatusIcon(status: string) {
 }
 
 export default function JobDetails() {
-  const [, params] = useRoute("/jobs/:id");
+  const [, params] = useRoute("/job/:id");
   const jobId = params?.id;
   const [job, setJob] = useState<JobWithTriggers | null>(null);
   const [loading, setLoading] = useState(true);
@@ -298,7 +298,7 @@ export default function JobDetails() {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <LinkIcon size={16} style={{ marginRight: 8 }} />
-                            <Link href={`/jobs/${trigger.id}`}>
+                            <Link href={`/job/${trigger.id}`}>
                               <Typography variant="body1" fontWeight="medium" sx={{ cursor: 'pointer', color: 'primary.main' }}>
                                 {trigger.id.substring(0, 8)}...
                               </Typography>
