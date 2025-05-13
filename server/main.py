@@ -2,7 +2,7 @@ import os
 import json
 import uuid
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any, Union
 from fastapi import FastAPI, HTTPException, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
@@ -63,14 +63,16 @@ def generate_sample_data():
     job3_id = f"job_{uuid.uuid4().hex[:10]}"
     job4_id = f"job_{uuid.uuid4().hex[:10]}"
     
-    # Create jobs with different statuses
+    now = datetime.now()
+    
+    # Create jobs with different statuses and staggered timestamps
     jobs_db[job1_id] = Job(
         id=job1_id,
         pipeline_id=pipeline_id,
         type=JobType.FETCH_TERRAIN,
         status=JobStatus.PENDING,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=now - timedelta(days=7),
+        updated_at=now - timedelta(days=7),
         args={"location": "San Francisco Bay", "resolution": "high", "format": "GeoJSON"},
         triggers=[],
         pipeline=pipelines_db[pipeline_id]
@@ -81,8 +83,8 @@ def generate_sample_data():
         pipeline_id=pipeline_id,
         type=JobType.WEATHER_FORECAST,
         status=JobStatus.PROCESSING,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=now - timedelta(days=3, hours=12),
+        updated_at=now - timedelta(hours=2),
         args={"location": "San Francisco Bay", "days": 5, "include_hourly": True},
         triggers=[],
         pipeline=pipelines_db[pipeline_id]
@@ -93,8 +95,8 @@ def generate_sample_data():
         pipeline_id=pipeline_id,
         type=JobType.WAVE_FORECAST,
         status=JobStatus.COMPLETED,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=now - timedelta(days=1, hours=6),
+        updated_at=now - timedelta(hours=5),
         args={"location": "San Francisco Bay", "days": 2, "include_direction": True},
         wave_forecast_data=wave_forecast_data,
         triggers=[],
@@ -106,8 +108,8 @@ def generate_sample_data():
         pipeline_id=pipeline_id,
         type=JobType.TIDE_FORECAST,
         status=JobStatus.FAILED,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=now - timedelta(hours=1),
+        updated_at=now - timedelta(minutes=30),
         error_message="API connection timed out after 30 seconds",
         args={"location": "San Francisco Bay", "days": 3},
         triggers=[],
