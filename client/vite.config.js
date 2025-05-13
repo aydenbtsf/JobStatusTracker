@@ -33,7 +33,11 @@ export default ({ mode }) => {
       fs: {
         strict: false,
         allow: ['.']
-      }
+      },
+      allowedHosts: [
+        'localhost',
+        '5ed1e1d0-97ef-4aad-982a-cd7dde3397e5-00-3ue6xnv29wn7b.janeway.replit.dev'
+      ]
     },
     resolve: {
       alias: {
