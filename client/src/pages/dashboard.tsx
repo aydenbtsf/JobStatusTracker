@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useRouter } from "@tanstack/react-router";
 import { JobWithTriggers, JobFilters, Pipeline } from "@/lib/types";
 import { JobStatus } from "@/schema";
 import { styled } from "@mui/material/styles";
@@ -33,7 +33,8 @@ import {
 import { SimplePipelineModal } from "@/components/simple-pipeline-modal";
 
 export default function Dashboard() {
-  const [location, setLocation] = useLocation();
+  const router = useRouter();
+  const location = router.state.location.pathname + router.state.location.search;
   const [pipelineModalOpen, setPipelineModalOpen] = useState(false);
   
   // Debug log for component mount
@@ -239,7 +240,7 @@ export default function Dashboard() {
                       pipelines.map((pipeline) => (
                         <StyledTableRow 
                           key={pipeline.id}
-                          onClick={() => setLocation(`/pipeline/${pipeline.id}`)}
+                          onClick={() => router.navigate({ to: '/pipeline/$id', params: { id: pipeline.id } })}
                           sx={{ cursor: 'pointer' }}
                         >
                           <TableCell component="th" scope="row">
@@ -324,7 +325,7 @@ export default function Dashboard() {
                       data.slice(0, 10).map((job) => (
                         <StyledTableRow 
                           key={job.id}
-                          onClick={() => setLocation(`/job/${job.id}`)}
+                          onClick={() => router.navigate({ to: '/job/$id', params: { id: job.id } })}
                         >
                           <TableCell component="th" scope="row">
                             {job.id}
@@ -337,7 +338,7 @@ export default function Dashboard() {
                               sx={{ fontWeight: 500, minWidth: 0, p: 0, textTransform: 'none' }}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setLocation(`/pipeline/${job.pipeline_id}`);
+                                router.navigate({ to: '/pipeline/$id', params: { id: job.pipeline_id } });
                               }}
                             >
                               {job.pipeline_id}
@@ -395,7 +396,7 @@ export default function Dashboard() {
                               color="primary"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setLocation(`/job/${job.id}`);
+                                router.navigate({ to: '/job/$id', params: { id: job.id } });
                               }}
                             >
                               View Details

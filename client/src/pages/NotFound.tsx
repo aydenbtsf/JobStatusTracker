@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "@tanstack/react-router";
 import { Box, Button, Typography, Container, Paper } from "@mui/material";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 import Layout from "../components/Layout";
@@ -29,7 +29,7 @@ export default function NotFound() {
           </Typography>
           <Button
             component={Link}
-            href="/"
+            to="/"
             variant="contained"
             startIcon={<ArrowLeft size={18} />}
             sx={{ mt: 2 }}

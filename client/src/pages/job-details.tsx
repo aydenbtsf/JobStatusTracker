@@ -1,4 +1,4 @@
-import { useRoute, useLocation } from 'wouter';
+import { useParams, useRouter } from '@tanstack/react-router';
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { JobWithPipeline } from "@/lib/types";
 import { formatFullDate, getStatusColor, prettyJSON } from "@/lib/utils";
@@ -25,9 +25,8 @@ import {
 } from 'lucide-react';
 
 export default function JobDetailsPage() {
-  const [, params] = useRoute<{ id: string }>('/job/:id');
-  const [, setLocation] = useLocation();
-  const id = params?.id;
+  const router = useRouter();
+  const { id } = useParams({ from: '/job/$id' });
   
   const { data: job, isLoading, error, refetch } = useQuery<JobWithPipeline>({
     queryKey: [`/api/jobs/${id}`],
@@ -51,7 +50,7 @@ export default function JobDetailsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
-      setLocation('/')
+      router.navigate({ to: '/' })
     },
   });
   
@@ -76,7 +75,7 @@ export default function JobDetailsPage() {
   };
   
   const handleBack = () => {
-    setLocation('/')
+    router.navigate({ to: '/' })
   }
 
   if (isLoading) {
@@ -322,7 +321,7 @@ export default function JobDetailsPage() {
                         boxShadow: 1
                       }
                     }}
-                    onClick={() => setLocation(`/job/${trigger.id}`)}
+                    onClick={() => router.navigate({ to: '/job/$id', params: { id: trigger.id } as any })}
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                       <Typography variant="subtitle1" fontWeight={500}>{trigger.id}</Typography>

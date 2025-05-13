@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { Link, useRouter } from "@tanstack/react-router";
 import { JobStatus } from "@/schema";
 import { 
   Box, 
@@ -54,7 +54,8 @@ function getStatusColor(status: StatusCount["status"]): "default" | "primary" | 
 }
 
 export function StatusTabs({ counts }: StatusTabsProps) {
-  const [location] = useLocation();
+  const router = useRouter();
+  const location = router.state.location.pathname + router.state.location.search;
 
   // Generate URL for each tab
   const getTabLink = (status: StatusCount["status"]) => {
@@ -73,7 +74,7 @@ export function StatusTabs({ counts }: StatusTabsProps) {
   return (
     <TabsContainer>
       {counts.map((item) => (
-        <Link href={getTabLink(item.status)} key={item.status}>
+        <Link to="/" search={status => item.status === "all" ? {} : { status: item.status }} key={item.status}>
           <TabBox active={isActive(item.status)}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography component="span" variant="body2">

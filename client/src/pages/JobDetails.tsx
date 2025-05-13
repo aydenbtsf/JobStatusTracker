@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRoute, Link } from "wouter";
+import { useParams, Link, useRouter } from "@tanstack/react-router";
 import {
   Typography,
   Box,
@@ -56,8 +56,9 @@ function getStatusIcon(status: string) {
 }
 
 export default function JobDetails() {
-  const [, params] = useRoute("/job/:id");
-  const jobId = params?.id;
+  const router = useRouter();
+  const { id } = useParams({ from: '/job/$id' });
+  const jobId = id;
   const [job, setJob] = useState<JobWithTriggers | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);

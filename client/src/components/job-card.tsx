@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "@tanstack/react-router";
 import { JobWithTriggers } from "@/lib/types";
 import { getStatusColor, formatDate } from "@/lib/utils";
 import { 
@@ -19,7 +19,7 @@ export function JobCard({ job }: JobCardProps) {
     <Card sx={{ mb: 2, boxShadow: 1, transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-2px)' } }}>
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <Link href={`/jobs/${job.id}`}>
+          <Link to={`/job/$id`} params={{ id: job.id }}>
             <Typography 
               variant="h6" 
               component="h3" 
@@ -76,8 +76,11 @@ export function JobCard({ job }: JobCardProps) {
                   label={`${trigger.id} (${trigger.status})`}
                   size="small"
                   variant="outlined"
-                  component={Link}
-                  href={`/jobs/${trigger.id}`}
+                  onClick={() => {
+                    const linkElement = document.createElement('a');
+                    linkElement.href = `/job/${trigger.id}`;
+                    linkElement.click();
+                  }}
                   clickable
                 />
               ))}

@@ -1,6 +1,6 @@
 import { Box, Container, Typography, Card, CardContent, Button } from "@mui/material";
 import { AlertCircle } from "lucide-react";
-import { Link } from "wouter";
+import { Link } from "@tanstack/react-router";
 
 export default function NotFound() {
   return (
@@ -29,7 +29,7 @@ export default function NotFound() {
             <Box sx={{ mt: 4 }}>
               <Button 
                 component={Link} 
-                href="/" 
+                to="/" 
                 variant="contained" 
                 color="primary"
               >
